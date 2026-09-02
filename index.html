@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>NEONATAL - Connexion</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #eaf8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 900px;
+            max-width: 95%;
+            min-height: 550px;
+            background: white;
+            border-radius: 25px;
+            overflow: hidden;
+            display: flex;
+            box-shadow: 0 10px 35px rgba(0, 120, 180, 0.15);
+        }
+
+        /* ==============================
+           PARTIE GAUCHE AVEC IMAGE
+        ============================== */
+
+        .illustration {
+            width: 50%;
+            min-height: 550px;
+
+            /* TON IMAGE EST ICI */
+            background-image: url("images/bbneo.jpeg");
+
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+
+            position: relative;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: flex-start;
+
+            padding: 40px;
+
+            overflow: hidden;
+        }
+
+        /*
+        Couche bleue transparente au-dessus
+        de l'image.
+        */
+
+        .illustration::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+
+            background: rgba(21, 155, 211, 0.20);
+
+            z-index: 1;
+        }
+
+        /*
+        Le contenu reste au-dessus
+        de la couche transparente.
+        */
+
+        .illustration h1,
+        .illustration p {
+            position: relative;
+            z-index: 2;
+        }
+
+        .illustration h1 {
+            color: white;
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .illustration p {
+            color: white;
+            font-size: 17px;
+            line-height: 1.6;
+        }
+
+
+        /* ==============================
+           PARTIE DROITE
+        ============================== */
+
+        .login {
+            width: 50%;
+            padding: 60px 50px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .logo h2 {
+            color: #159bd3;
+            font-size: 32px;
+            letter-spacing: 2px;
+        }
+
+        .logo p {
+            color: #777;
+            margin-top: 8px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+
+            border: 1px solid #cceaf7;
+            border-radius: 10px;
+
+            outline: none;
+            font-size: 15px;
+        }
+
+        .input-group input:focus {
+            border-color: #159bd3;
+
+            box-shadow:
+                0 0 0 3px rgba(21, 155, 211, 0.10);
+        }
+
+        .forgot {
+            text-align: right;
+            margin-bottom: 25px;
+        }
+
+        .forgot a {
+            color: #159bd3;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .forgot a:hover {
+            text-decoration: underline;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 15px;
+
+            border: none;
+            border-radius: 10px;
+
+            background: #159bd3;
+
+            color: white;
+
+            font-size: 17px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.3s;
+        }
+
+        .login-button:hover {
+            background: #087eae;
+            transform: translateY(-1px);
+        }
+
+        .bottom-text {
+            text-align: center;
+            margin-top: 25px;
+
+            color: #777;
+            font-size: 14px;
+        }
+
+
+        /* ==============================
+           ADAPTATION TELEPHONE
+        ============================== */
+
+        @media (max-width: 700px) {
+
+            .container {
+                flex-direction: column;
+            }
+
+            .illustration,
+            .login {
+                width: 100%;
+            }
+
+            .illustration {
+                min-height: 350px;
+            }
+
+            .login {
+                padding: 40px 30px;
+            }
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+    <div class="container">
+
+
+        <!-- ==============================
+             PARTIE IMAGE
+        ============================== -->
+
+        <div class="illustration">
+
+            <h1>
+                Protégeons nos bébés
+            </h1>
+
+            <p>
+                Une solution numérique intelligente
+                pour assurer la sécurité et le suivi
+                des nouveau-nés à l'hôpital.
+            </p>
+
+        </div>
+
+
+        <!-- ==============================
+             FORMULAIRE DE CONNEXION
+        ============================== -->
+
+        <div class="login">
+
+            <div class="logo">
+
+                <h2>
+                    NEONATAL
+                </h2>
+
+                <p>
+                    Sécurité & Suivi des nouveau-nés
+                </p>
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="email">
+                    Identifiant ou e-mail
+                </label>
+
+                <input
+                    type="text"
+                    id="email"
+                    placeholder="Entrez votre identifiant"
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="password">
+                    Mot de passe
+                </label>
+
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Entrez votre mot de passe"
+                >
+
+            </div>
+
+
+            <div class="forgot">
+
+                <a href="#">
+                    Mot de passe oublié ?
+                </a>
+
+            </div>
+
+
+            <button class="login-button">
+                Se connecter
+            </button>
+
+
+            <div class="bottom-text">
+
+                Accès sécurisé réservé
+                aux utilisateurs autorisés.
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>
