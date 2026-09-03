@@ -1,0 +1,191 @@
+:root {
+  --primary: #2b6cb0;
+  --primary-dark: #1a4971;
+  --primary-light: #ebf4ff;
+  --bg: #f4f8fb;
+  --text: #1f2d3d;
+  --text-light: #6b7c93;
+  --border: #d9e6f2;
+  --white: #ffffff;
+  --shadow: 0 10px 30px rgba(43, 108, 176, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.container {
+  display: flex;
+  width: 100%;
+  max-width: 1000px;
+  min-height: 600px;
+  background: var(--white);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+/* Colonne gauche : illustration */
+.illustration {
+  flex: 1;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-end;
+  min-height: 300px;
+}
+
+.illustration::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(26, 73, 113, 0.85) 0%,
+    rgba(26, 73, 113, 0.4) 50%,
+    rgba(26, 73, 113, 0.15) 100%
+  );
+}
+
+.illustration-content {
+  position: relative;
+  z-index: 1;
+  padding: 32px;
+  color: var(--white);
+}
+
+.illustration-content h1 {
+  font-size: 26px;
+  margin: 0 0 12px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.illustration-content p {
+  font-size: 14px;
+  line-height: 1.6;
+  opacity: 0.95;
+  margin: 0;
+}
+
+/* Colonne droite : formulaire */
+.login {
+  flex: 1;
+  padding: 48px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.logo h2 {
+  color: #2b6cb0;
+  font-size: 24px;
+  letter-spacing: 2px;
+  margin: 0 0 6px;
+  font-weight: bold;
+}
+
+.logo p {
+  color: var(--text-light);
+  font-size: 13px;
+  margin: 0;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  font-size: 13px;
+  font-weight:bold;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  background: var(--bg);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+  background: var(--white);
+}
+
+.forgot {
+  text-align: right;
+  margin-bottom: 24px;
+}
+
+.forgot a {
+  font-size: 13px;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.forgot a:hover {
+  text-decoration: underline;
+}
+
+.login-button {
+  width: 100%;
+  padding: 13px;
+  background: var(--primary);
+  color: var(--white);
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.login-button:hover {
+  background: var(--primary-dark);
+}
+
+.bottom-text {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 24px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .illustration {
+    min-height: 220px;
+  }
+}
