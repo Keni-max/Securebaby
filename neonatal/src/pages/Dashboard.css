@@ -159,18 +159,10 @@
   white-space: nowrap;
 }
 
-.map-placeholder {
+.mini-map {
   height: 240px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #e6f0fb, #f1f7fd);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: var(--primary);
-  font-size: 13px;
-  font-weight: 600;
+  overflow: hidden;
 }
 
 @media (max-width: 900px) {

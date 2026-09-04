@@ -1,7 +1,21 @@
+import { MapContainer, TileLayer, Marker } from 'react-leaflet'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import icon from 'leaflet/dist/images/marker-icon.png'
+import iconShadow from 'leaflet/dist/images/marker-shadow.png'
+import { useNavigate } from 'react-router-dom'
+const defaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+})
+L.Marker.prototype.options.icon = defaultIcon
 import { Baby, Radio, AlertTriangle, Users, MapPin } from 'lucide-react'
 import './Dashboard.css'
 
 function Dashboard() {
+  const navigate = useNavigate()
   const stats = [
     { label: 'Bébés surveillés', value: 12, icon: Baby, color: 'blue' },
     { label: 'Bracelets connectés', value: 12, icon: Radio, color: 'teal' },
@@ -62,12 +76,16 @@ function Dashboard() {
         </div>
 
         <div className="panel">
-          <h2>Aperçu carte</h2>
-          <div className="map-placeholder">
-            <MapPin size={28} strokeWidth={1.6} />
-            <span>Carte GPS — à intégrer</span>
-          </div>
-        </div>
+  <h2>Aperçu carte</h2>
+  <div className="mini-map" onClick={() => navigate('/carte')} style={{ cursor: 'pointer' }}>
+    <MapContainer center={[3.8480, 11.5021]} zoom={16} style={{ height: '100%', width: '100%' }} zoomControl={false} dragging={false} scrollWheelZoom={false}>
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <Marker position={[3.8483, 11.5030]} />
+      <Marker position={[3.8478, 11.5018]} />
+      <Marker position={[3.8481, 11.5024]} />
+    </MapContainer>
+  </div>
+</div>
       </section>
     </div>
   )
