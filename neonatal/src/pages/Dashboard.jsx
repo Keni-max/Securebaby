@@ -41,19 +41,29 @@ function Dashboard() {
 
       <section className="stats-grid">
         {stats.map((stat) => {
-          const Icon = stat.icon
-          return (
-            <div className="stat-card" key={stat.label}>
-              <div className={`stat-icon icon-${stat.color}`}>
-                <Icon size={20} strokeWidth={2.2} />
-              </div>
-              <div>
-                <div className="stat-value">{stat.value}</div>
-                <div className="stat-label">{stat.label}</div>
-              </div>
-            </div>
-          )
-        })}
+  const Icon = stat.icon
+  const clickable = stat.label === 'Personnel en ligne' || stat.label === 'Bébés surveillés' || stat.label === 'Bracelets connectés'
+  return (
+    <div
+      className="stat-card"
+      key={stat.label}
+      onClick={
+  clickable
+    ? () => navigate(stat.label === 'Personnel en ligne' ? '/personnel' : '/gestion')
+    : undefined
+}
+      style={clickable ? { cursor: 'pointer' } : undefined}
+    >
+      <div className={`stat-icon icon-${stat.color}`}>
+        <Icon size={20} strokeWidth={2.2} />
+      </div>
+      <div>
+        <div className="stat-value">{stat.value}</div>
+        <div className="stat-label">{stat.label}</div>
+      </div>
+    </div>
+  )
+})}
       </section>
 
       <section className="dashboard-content">
