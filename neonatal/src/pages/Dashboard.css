@@ -1,6 +1,6 @@
 .dashboard {
   min-height: 100vh;
-  background: #eef3f8;
+  background: #eef2f8;
   padding: 36px;
 }
 
@@ -169,4 +169,22 @@
   .dashboard-content {
     grid-template-columns: 1fr;
   }
+}
+.dashboard-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.add-user-button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
 }
