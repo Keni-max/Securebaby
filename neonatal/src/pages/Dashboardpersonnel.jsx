@@ -291,7 +291,6 @@ function DashboardPersonnel() {
 
       <section className="dashboard-content">
 
-
         {/* ========================= */}
         {/* BÉBÉS SURVEILLÉS */}
         {/* ========================= */}
@@ -318,7 +317,14 @@ function DashboardPersonnel() {
                 <div
                   className="baby-item clickable"
                   key={baby.id}
-                  onClick={() => navigate('/carte')}
+                  onClick={() =>
+                    navigate('/carte', {
+                      state: {
+                        fromDashboard:
+                          '/dashboard/personnel',
+                      },
+                    })
+                  }
                 >
 
                   <div className="baby-icon">
@@ -455,7 +461,9 @@ function DashboardPersonnel() {
 
         <div
           className="personnel-map"
-          onClick={() => navigate('/carte')}
+          onClick={() =>
+            navigate('/carte?from=personnel')
+          }
           style={{ cursor: 'pointer' }}
         >
 

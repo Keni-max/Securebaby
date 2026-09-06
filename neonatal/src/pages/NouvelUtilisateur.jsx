@@ -14,6 +14,14 @@ function NouvelUtilisateur() {
     identifiant: '',
     password: '',
     role: '',
+
+    // Informations du bébé
+    babyNom: '',
+    babyPrenom: '',
+    babyDateNaissance: '',
+    babyHeureNaissance: '',
+    babySexe: '',
+    babyBracelet: '',
   })
 
   const handleChange = (e) => {
@@ -24,34 +32,54 @@ function NouvelUtilisateur() {
   }
 
   const handleSubmit = async (e) => {
-  e.preventDefault()
+    e.preventDefault()
 
-  try {
-    const response = await fetch('http://127.0.0.1:5000/api/users', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    })
-
-    const data = await response.json()
-
-    if (data.success) {
-      alert('Utilisateur créé avec succès !')
-      navigate('/dashboard/admin')
-    } else {
-      alert(data.message)
+    // Si c'est un parent, vérifier les informations du bébé
+    if (formData.role === 'parent') {
+      if (
+        !formData.babyNom ||
+        !formData.babyPrenom ||
+        !formData.babyDateNaissance ||
+        !formData.babyHeureNaissance ||
+        !formData.babySexe ||
+        !formData.babyBracelet
+      ) {
+        alert('Veuillez remplir toutes les informations du bébé.')
+        return
+      }
     }
 
-  } catch (error) {
-    console.error(error)
-    alert('Impossible de contacter le serveur.')
+    try {
+      const response = await fetch(
+        'http://127.0.0.1:5000/api/users',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        }
+      )
+
+      const data = await response.json()
+
+      if (data.success) {
+        alert(
+          formData.role === 'parent'
+            ? 'Compte parent, bébé et bracelet créés avec succès !'
+            : 'Utilisateur créé avec succès !'
+        )
+
+        navigate('/dashboard/admin')
+      } else {
+        alert(data.message)
+      }
+
+    } catch (error) {
+      console.error(error)
+      alert('Impossible de contacter le serveur.')
+    }
   }
-}
-
- 
-
 
   return (
     <div className="nouvel-utilisateur-page">
@@ -71,8 +99,6 @@ function NouvelUtilisateur() {
             <UserPlus size={24} />
             Nouvel utilisateur
           </h1>
-
-          
         </div>
 
       </header>
@@ -81,6 +107,10 @@ function NouvelUtilisateur() {
         className="utilisateur-form"
         onSubmit={handleSubmit}
       >
+
+        {/* ==================================================
+            INFORMATIONS PERSONNELLES
+        ================================================== */}
 
         <div className="form-section">
 
@@ -143,6 +173,11 @@ function NouvelUtilisateur() {
 
         </div>
 
+
+        {/* ==================================================
+            INFORMATIONS DU COMPTE
+        ================================================== */}
+
         <div className="form-section">
 
           <h2>Informations du compte</h2>
@@ -184,16 +219,145 @@ function NouvelUtilisateur() {
                 onChange={handleChange}
                 required
               >
-                <option value="">Sélectionner un rôle</option>
-                <option value="parent">Parent</option>
-                <option value="personnel">Personnel</option>
-                <option value="admin">Administrateur</option>
+                <option value="">
+                  Sélectionner un rôle
+                </option>
+
+                <option value="parent">
+                  Parent
+                </option>
+
+                <option value="personnel">
+                  Personnel
+                </option>
+
+                <option value="admin">
+                  Administrateur
+                </option>
+
               </select>
             </div>
 
           </div>
 
         </div>
+
+
+        {/* ==================================================
+            INFORMATIONS DU BEBE
+            APPARAIT UNIQUEMENT POUR LE ROLE PARENT
+        ================================================== */}
+
+        {formData.role === 'parent' && (
+
+          <div className="form-section">
+
+            <h2>Informations du bébé</h2>
+
+            <div className="form-grid">
+
+              <div className="input-group">
+                <label>Nom du bébé</label>
+
+                <input
+                  type="text"
+                  name="babyNom"
+                  placeholder="Nom du bébé"
+                  value={formData.babyNom}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+
+              <div className="input-group">
+                <label>Prénom du bébé</label>
+
+                <input
+                  type="text"
+                  name="babyPrenom"
+                  placeholder="Prénom du bébé"
+                  value={formData.babyPrenom}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+
+              <div className="input-group">
+                <label>Date de naissance</label>
+
+                <input
+                  type="date"
+                  name="babyDateNaissance"
+                  value={formData.babyDateNaissance}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+
+              <div className="input-group">
+                <label>Heure de naissance</label>
+
+                <input
+                  type="time"
+                  name="babyHeureNaissance"
+                  value={formData.babyHeureNaissance}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+
+              <div className="input-group">
+                <label>Sexe</label>
+
+                <select
+                  name="babySexe"
+                  value={formData.babySexe}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">
+                    Sélectionner le sexe
+                  </option>
+
+                  <option value="Masculin">
+                    Masculin
+                  </option>
+
+                  <option value="Féminin">
+                    Féminin
+                  </option>
+
+                </select>
+              </div>
+
+
+              <div className="input-group">
+                <label>Numéro du bracelet</label>
+
+                <input
+                  type="text"
+                  name="babyBracelet"
+                  placeholder="Ex : BB001"
+                  value={formData.babyBracelet}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+            </div>
+
+          </div>
+
+        )}
+
+
+        {/* ==================================================
+            BOUTONS
+        ================================================== */}
 
         <div className="form-actions">
 
@@ -221,3 +385,4 @@ function NouvelUtilisateur() {
 }
 
 export default NouvelUtilisateur
+

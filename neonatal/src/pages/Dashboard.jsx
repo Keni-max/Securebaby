@@ -341,7 +341,13 @@ function Dashboard() {
 
           <div
             className="map-preview"
-            onClick={() => navigate('/carte')}
+            onClick={() =>
+              navigate('/carte', {
+                state: {
+                  fromDashboard: '/dashboard/admin',
+                },
+              })
+            }
             style={{ cursor: 'pointer' }}
           >
 

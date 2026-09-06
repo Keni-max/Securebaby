@@ -9,6 +9,7 @@ import Historique from './pages/Historique'
 import NouveauBebe from './pages/NouveauBebe'
 import NouvelUtilisateur from './pages/NouvelUtilisateur'
 import DashboardPersonnel from './pages/DashboardPersonnel'
+import NouvelleAdmission from './pages/NouvelleAdmission'
 function App() {
   return (
     <Routes>
@@ -22,6 +23,10 @@ function App() {
       <Route path="/nouveau-bebe" element={<NouveauBebe />} />
       <Route path="/nouvel-utilisateur" element={<NouvelUtilisateur />}/>
       <Route path="/dashboard/personnel" element={<DashboardPersonnel />} />
+      <Route
+  path="/nouvelle-admission"
+  element={<NouvelleAdmission />}
+/>
     </Routes>
   )
 }

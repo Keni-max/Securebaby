@@ -1,12 +1,31 @@
 import { useEffect, useState } from 'react'
-import { Baby, MapPin, ShieldCheck, AlertTriangle } from 'lucide-react'
+import {
+  Baby,
+  MapPin,
+  ShieldCheck,
+  AlertTriangle,
+  Radio,
+  Clock,
+} from 'lucide-react'
 import './DashboardParent.css'
-import { MapContainer, TileLayer, Marker } from 'react-leaflet'
+
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+} from 'react-leaflet'
+
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+
 import icon from 'leaflet/dist/images/marker-icon.png'
 import iconShadow from 'leaflet/dist/images/marker-shadow.png'
+
 import { useNavigate } from 'react-router-dom'
+
+// ========================================
+// ICÔNE LEAFLET
+// ========================================
 
 const defaultIcon = L.icon({
   iconUrl: icon,
@@ -21,36 +40,93 @@ function DashboardParent() {
   const navigate = useNavigate()
 
   const [babies, setBabies] = useState([])
+  const [situation, setSituation] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   const userId = localStorage.getItem('user_id')
+
+  // ========================================
+  // CHARGEMENT DES INFORMATIONS
+  // ========================================
 
   useEffect(() => {
     if (!userId) {
       console.log('Aucun parent connecté')
+      setError('Aucun parent connecté.')
       setLoading(false)
       return
     }
 
-    const loadBabies = () => {
-      fetch(`http://127.0.0.1:5000/api/babies/parent/${userId}`)
-        .then((response) => response.json())
-        .then((data) => {
-          console.log('Bébés du parent :', data)
-          setBabies(Array.isArray(data) ? data : [])
-          setLoading(false)
-        })
-        .catch((error) => {
-          console.error('Erreur récupération bébé :', error)
-          setLoading(false)
-        })
+    const loadSituation = async () => {
+      try {
+        // ------------------------------------
+        // 1. Récupérer la situation du parent
+        // ------------------------------------
+
+        const situationResponse = await fetch(
+          `http://127.0.0.1:5000/api/parent/${userId}/situation`
+        )
+
+        const situationData =
+          await situationResponse.json()
+
+        console.log(
+          'Situation du parent :',
+          situationData
+        )
+
+        if (situationResponse.ok) {
+          setSituation(situationData)
+        }
+
+        // ------------------------------------
+        // 2. Récupérer les bébés
+        // ------------------------------------
+
+        const babiesResponse = await fetch(
+          `http://127.0.0.1:5000/api/babies/parent/${userId}`
+        )
+
+        const babiesData =
+          await babiesResponse.json()
+
+        console.log(
+          'Bébés du parent :',
+          babiesData
+        )
+
+        if (babiesResponse.ok) {
+          setBabies(
+            Array.isArray(babiesData)
+              ? babiesData
+              : []
+          )
+        } else {
+          setBabies([])
+        }
+
+        setError('')
+      } catch (error) {
+        console.error(
+          'Erreur récupération informations parent :',
+          error
+        )
+
+        setError(
+          'Impossible de récupérer vos informations.'
+        )
+      } finally {
+        setLoading(false)
+      }
     }
 
-    loadBabies()
+    // Premier chargement
+    loadSituation()
 
-    // Actualisation automatique toutes les 10 secondes
+    // Actualisation automatique
     const interval = setInterval(() => {
-      loadBabies()
+      loadSituation()
     }, 10000)
 
     return () => {
@@ -58,24 +134,42 @@ function DashboardParent() {
     }
   }, [userId])
 
-  // Chargement
+  // ========================================
+  // CHARGEMENT
+  // ========================================
+
   if (loading) {
     return (
       <div className="dashboard-parent">
-        <p>Chargement des informations...</p>
+        <div className="panel">
+          <p>
+            Chargement de vos informations...
+          </p>
+        </div>
       </div>
     )
   }
 
-  // Aucun bébé associé
-  if (babies.length === 0) {
+  // ========================================
+  // ERREUR
+  // ========================================
+
+  if (
+    error &&
+    !situation &&
+    babies.length === 0
+  ) {
     return (
       <div className="dashboard-parent">
-
         <header className="dp-header">
           <div>
-            <h1>Mon suivi</h1>
-            <p>Aucun bébé associé à ce compte</p>
+            <h1>
+              Mon suivi
+            </h1>
+
+            <p>
+              Espace parent
+            </p>
           </div>
 
           <div className="user-badge">
@@ -85,32 +179,207 @@ function DashboardParent() {
 
         <section className="panel">
           <h2>
-            <Baby size={16} />
-            Aucun bébé enregistré
+            <AlertTriangle size={18} />
+            Informations indisponibles
           </h2>
 
           <p>
-            Aucun bébé n'est actuellement associé à votre compte.
+            {error}
           </p>
         </section>
-
       </div>
     )
   }
 
-  const alerts = []
+  // ========================================
+  // CAS 1 :
+  // BRACELET RÉSERVÉ MAIS PAS ENCORE DE BÉBÉ
+  // ========================================
+
+  if (babies.length === 0) {
+    return (
+      <div className="dashboard-parent">
+        <header className="dp-header">
+          <div>
+            <h1>
+              Mon suivi
+            </h1>
+
+            <p>
+              Suivi de votre admission
+            </p>
+          </div>
+
+          <div className="user-badge">
+            Parent
+          </div>
+        </header>
+
+        {/* -------------------------------- */}
+        {/* CARTE BRACELET RÉSERVÉ */}
+        {/* -------------------------------- */}
+
+        <section className="panel">
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              marginBottom: '15px',
+            }}
+          >
+            <Radio size={22} />
+
+            <h2 style={{ margin: 0 }}>
+              Bracelet réservé
+            </h2>
+          </div>
+
+          <div
+            className="status-card"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '15px',
+              padding: '20px',
+              borderRadius: '12px',
+            }}
+          >
+            <div className="status-icon">
+              <Clock size={28} />
+            </div>
+
+            <div>
+              <div className="status-title">
+                Votre bracelet est réservé
+              </div>
+
+              <div className="status-time">
+                {situation?.bracelet
+                  ? `Bracelet : ${situation.bracelet}`
+                  : 'Bracelet en attente'}
+              </div>
+            </div>
+          </div>
+
+          {/* -------------------------------- */}
+          {/* MESSAGE À LA MÈRE */}
+          {/* -------------------------------- */}
+
+          <div
+            style={{
+              marginTop: '20px',
+              padding: '18px',
+              borderRadius: '10px',
+              background: '#f8f9fa',
+            }}
+          >
+            <h3>
+              Votre bébé n'est pas encore enregistré
+            </h3>
+
+            <p>
+              Votre compte parent est bien actif.
+              Le bracelet vous est actuellement réservé.
+            </p>
+
+            <p>
+              Dès que la naissance sera enregistrée
+              par le personnel de l'hôpital, votre bébé
+              sera automatiquement associé à votre compte.
+            </p>
+          </div>
+
+          {/* -------------------------------- */}
+          {/* INFORMATIONS */}
+          {/* -------------------------------- */}
+
+          {situation && (
+            <ul className="info-list">
+              <li>
+                <span>
+                  Mère
+                </span>
+
+                <strong>
+                  {situation.nom_mere || '-'}
+                </strong>
+              </li>
+
+              <li>
+                <span>
+                  Bracelet
+                </span>
+
+                <strong>
+                  {situation.bracelet || '-'}
+                </strong>
+              </li>
+
+              <li>
+                <span>
+                  Situation
+                </span>
+
+                <strong>
+                  Bracelet réservé
+                </strong>
+              </li>
+            </ul>
+          )}
+        </section>
+
+        {/* -------------------------------- */}
+        {/* INFORMATION SUR L'ACTUALISATION */}
+        {/* -------------------------------- */}
+
+        <section className="panel">
+          <h2>
+            <ShieldCheck size={18} />
+            Protection
+          </h2>
+
+          <p>
+            Cette page se met automatiquement à jour.
+            Vous n'avez pas besoin de vous reconnecter
+            lorsque la naissance sera enregistrée.
+          </p>
+        </section>
+
+        {/* -------------------------------- */}
+        {/* ALERTES */}
+        {/* -------------------------------- */}
+
+        <section className="panel">
+          <h2>
+            Mes alertes
+          </h2>
+
+          <p className="no-alert">
+            Aucune alerte pour le moment.
+          </p>
+        </section>
+      </div>
+    )
+  }
+
+  // ========================================
+  // CAS 2 :
+  // LE BÉBÉ EST ENREGISTRÉ
+  // ========================================
 
   return (
     <div className="dashboard-parent">
 
-      {/* ========================= */}
+      {/* ================================= */}
       {/* EN-TÊTE */}
-      {/* ========================= */}
+      {/* ================================= */}
 
       <header className="dp-header">
-
         <div>
-          <h1>Mon suivi</h1>
+          <h1>
+            Mon suivi
+          </h1>
 
           <p>
             {babies.length === 1
@@ -122,31 +391,28 @@ function DashboardParent() {
         <div className="user-badge">
           Parent
         </div>
-
       </header>
 
-
-      {/* ========================= */}
+      {/* ================================= */}
       {/* CARTES DES BÉBÉS */}
-      {/* ========================= */}
+      {/* ================================= */}
 
       {babies.map((babyData) => {
-
-        const baby = {
-          name: `${babyData.nom} ${babyData.prenom}`,
-          bracelet: babyData.bracelet,
-          status: 'safe',
-          lastUpdate: 'À l’instant',
-        }
+        const babyName =
+          `${babyData.nom || ''} ${babyData.prenom || ''}`.trim()
 
         return (
           <section
             className="panel"
             key={babyData.id}
-            style={{ marginBottom: '20px' }}
+            style={{
+              marginBottom: '20px',
+            }}
           >
 
-            {/* Nom du bébé */}
+            {/* ============================= */}
+            {/* IDENTITÉ DU BÉBÉ */}
+            {/* ============================= */}
 
             <div
               style={{
@@ -158,70 +424,57 @@ function DashboardParent() {
                 flexWrap: 'wrap',
               }}
             >
-
               <div>
-
-                <h2 style={{ marginBottom: '5px' }}>
+                <h2
+                  style={{
+                    marginBottom: '5px',
+                  }}
+                >
                   <Baby size={18} />
-                  {baby.name}
+
+                  {babyName}
                 </h2>
 
                 <p style={{ margin: 0 }}>
-                  Bracelet : <strong>{baby.bracelet}</strong>
+                  Bracelet :{' '}
+                  <strong>
+                    {babyData.bracelet}
+                  </strong>
                 </p>
-
               </div>
-
             </div>
 
+            {/* ============================= */}
+            {/* STATUT DU BÉBÉ */}
+            {/* ============================= */}
 
-            {/* ========================= */}
-            {/* STATUT */}
-            {/* ========================= */}
-
-            <section className={`status-card ${baby.status}`}>
-
+            <section className="status-card safe">
               <div className="status-icon">
-
-                {baby.status === 'safe' ? (
-                  <ShieldCheck size={28} />
-                ) : (
-                  <AlertTriangle size={28} />
-                )}
-
+                <ShieldCheck size={28} />
               </div>
 
               <div>
-
                 <div className="status-title">
-
-                  {baby.status === 'safe'
-                    ? 'Votre bébé est en sécurité'
-                    : 'Alerte en cours'}
-
+                  Votre bébé est en sécurité
                 </div>
 
                 <div className="status-time">
-
-                  Dernière mise à jour : {baby.lastUpdate}
-
+                  Bracelet actif
                 </div>
-
               </div>
-
             </section>
 
-
-            {/* ========================= */}
+            {/* ============================= */}
             {/* CARTE + FICHE */}
-            {/* ========================= */}
+            {/* ============================= */}
 
             <section className="dp-content">
 
+              {/* =========================== */}
               {/* CARTE */}
+              {/* =========================== */}
 
               <div className="panel">
-
                 <h2>
                   <MapPin size={16} />
                   Position actuelle
@@ -229,12 +482,23 @@ function DashboardParent() {
 
                 <div
                   className="mini-map"
-                  onClick={() => navigate('/carte')}
-                  style={{ cursor: 'pointer' }}
+                  onClick={() =>
+                    navigate('/carte', {
+                      state: {
+                        fromDashboard:
+                          '/dashboard/parent',
+                      },
+                    })
+                  }
+                  style={{
+                    cursor: 'pointer',
+                  }}
                 >
-
                   <MapContainer
-                    center={[3.8483, 11.5030]}
+                    center={[
+                      3.8483,
+                      11.5030,
+                    ]}
                     zoom={17}
                     style={{
                       height: '100%',
@@ -244,24 +508,25 @@ function DashboardParent() {
                     dragging={false}
                     scrollWheelZoom={false}
                   >
-
                     <TileLayer
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
 
-                    <Marker position={[3.8483, 11.5030]} />
-
+                    <Marker
+                      position={[
+                        3.8483,
+                        11.5030,
+                      ]}
+                    />
                   </MapContainer>
-
                 </div>
-
               </div>
 
-
+              {/* =========================== */}
               {/* FICHE BÉBÉ */}
+              {/* =========================== */}
 
               <div className="panel">
-
                 <h2>
                   <Baby size={16} />
                   Fiche bébé
@@ -270,27 +535,50 @@ function DashboardParent() {
                 <ul className="info-list">
 
                   <li>
-                    <span>Nom</span>
-                    <strong>{babyData.nom}</strong>
+                    <span>
+                      Nom
+                    </span>
+
+                    <strong>
+                      {babyData.nom}
+                    </strong>
                   </li>
 
                   <li>
-                    <span>Prénom</span>
-                    <strong>{babyData.prenom}</strong>
+                    <span>
+                      Prénom
+                    </span>
+
+                    <strong>
+                      {babyData.prenom}
+                    </strong>
                   </li>
 
                   <li>
-                    <span>Date de naissance</span>
-                    <strong>{babyData.date_naissance}</strong>
+                    <span>
+                      Date de naissance
+                    </span>
+
+                    <strong>
+                      {babyData.date_naissance}
+                    </strong>
                   </li>
 
                   <li>
-                    <span>Heure de naissance</span>
-                    <strong>{babyData.heure_naissance}</strong>
+                    <span>
+                      Heure de naissance
+                    </span>
+
+                    <strong>
+                      {babyData.heure_naissance}
+                    </strong>
                   </li>
 
                   <li>
-                    <span>Sexe</span>
+                    <span>
+                      Sexe
+                    </span>
+
                     <strong>
                       {babyData.sexe === 'F'
                         ? 'Féminin'
@@ -299,21 +587,26 @@ function DashboardParent() {
                   </li>
 
                   <li>
-                    <span>Bracelet</span>
-                    <strong>{babyData.bracelet}</strong>
+                    <span>
+                      Bracelet
+                    </span>
+
+                    <strong>
+                      {babyData.bracelet}
+                    </strong>
                   </li>
 
                   <li>
-                    <span>Statut</span>
+                    <span>
+                      Statut
+                    </span>
+
                     <strong>
-                      {baby.status === 'safe'
-                        ? 'Sécurisé'
-                        : 'Alerte'}
+                      Sécurisé
                     </strong>
                   </li>
 
                 </ul>
-
               </div>
 
             </section>
@@ -322,52 +615,18 @@ function DashboardParent() {
         )
       })}
 
-
-      {/* ========================= */}
+      {/* ================================= */}
       {/* ALERTES */}
-      {/* ========================= */}
+      {/* ================================= */}
 
       <section className="panel">
+        <h2>
+          Mes alertes
+        </h2>
 
-        <h2>Mes alertes</h2>
-
-        {alerts.length === 0 ? (
-
-          <p className="no-alert">
-            Aucune alerte pour le moment.
-          </p>
-
-        ) : (
-
-          <ul className="alert-list">
-
-            {alerts.map((a) => (
-
-              <li
-                key={a.id}
-                className={`alert-item ${a.level}`}
-              >
-
-                <div className="alert-icon">
-                  <AlertTriangle size={16} />
-                </div>
-
-                <div className="alert-body">
-                  <strong>{a.type}</strong>
-                </div>
-
-                <span className="alert-time">
-                  {a.time}
-                </span>
-
-              </li>
-
-            ))}
-
-          </ul>
-
-        )}
-
+        <p className="no-alert">
+          Aucune alerte pour le moment.
+        </p>
       </section>
 
     </div>
@@ -375,4 +634,3 @@ function DashboardParent() {
 }
 
 export default DashboardParent
-

@@ -18,42 +18,101 @@ function Login() {
     setLoading(true)
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          identifiant,
-          password,
-        }),
-      })
+      const response = await fetch(
+        'http://127.0.0.1:5000/api/login',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            identifiant,
+            password,
+          }),
+        }
+      )
 
       const data = await response.json()
 
       if (response.ok && data.success) {
 
-        // Enregistrer les informations de l'utilisateur connecté
-        localStorage.setItem('user_id', data.user_id)
-        localStorage.setItem('role', data.role)
+        // --------------------------------------------------
+        // SUPPRIMER L'ANCIENNE SESSION
+        // --------------------------------------------------
+        localStorage.removeItem('user_id')
+        localStorage.removeItem('role')
+        localStorage.removeItem('nom')
+        localStorage.removeItem('prenom')
+        localStorage.removeItem('email')
 
+        // --------------------------------------------------
+        // ENREGISTRER LA NOUVELLE SESSION
+        // --------------------------------------------------
+        localStorage.setItem(
+          'user_id',
+          String(data.user_id)
+        )
+
+        localStorage.setItem(
+          'role',
+          data.role
+        )
+
+        localStorage.setItem(
+          'nom',
+          data.nom || ''
+        )
+
+        localStorage.setItem(
+          'prenom',
+          data.prenom || ''
+        )
+
+        localStorage.setItem(
+          'email',
+          data.email || ''
+        )
+
+        // --------------------------------------------------
+        // REDIRECTION SELON LE ROLE
+        // --------------------------------------------------
         if (data.role === 'admin') {
+
           navigate('/dashboard/admin')
+
         } else if (data.role === 'parent') {
+
           navigate('/dashboard/parent')
+
         } else if (data.role === 'personnel') {
+
           navigate('/dashboard/personnel')
+
+        } else {
+
+          setError(
+            'Catégorie utilisateur inconnue.'
+          )
         }
 
       } else {
-        setError(data.message)
+
+        setError(
+          data.message ||
+          'Identifiant/e-mail ou mot de passe incorrect.'
+        )
       }
 
     } catch (error) {
+
       console.error(error)
-      setError('Impossible de contacter le serveur.')
+
+      setError(
+        'Impossible de contacter le serveur.'
+      )
 
     } finally {
+
       setLoading(false)
     }
   }
@@ -65,7 +124,9 @@ function Login() {
 
         <section
           className="illustration"
-          style={{ backgroundImage: `url(${babyImage})` }}
+          style={{
+            backgroundImage: `url(${babyImage})`
+          }}
         >
 
           <div className="illustration-content">
@@ -82,7 +143,6 @@ function Login() {
 
         </section>
 
-
         <section className="login">
 
           <div className="logo">
@@ -95,7 +155,6 @@ function Login() {
 
           </div>
 
-
           <form onSubmit={handleSubmit}>
 
             <div className="input-group">
@@ -107,14 +166,15 @@ function Login() {
               <input
                 type="text"
                 id="email"
-                placeholder="Entrez votre identifiant"
+                placeholder="Entrez votre identifiant ou e-mail"
                 value={identifiant}
-                onChange={(e) => setIdentifiant(e.target.value)}
+                onChange={(e) =>
+                  setIdentifiant(e.target.value)
+                }
                 required
               />
 
             </div>
-
 
             <div className="input-group">
 
@@ -127,12 +187,13 @@ function Login() {
                 id="password"
                 placeholder="Entrez votre mot de passe"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) =>
+                  setPassword(e.target.value)
+                }
                 required
               />
 
             </div>
-
 
             <div className="forgot">
 
@@ -142,28 +203,23 @@ function Login() {
 
             </div>
 
-
             {error && (
               <p style={{ color: 'red' }}>
                 {error}
               </p>
             )}
 
-
             <button
               type="submit"
               className="login-button"
               disabled={loading}
             >
-
               {loading
                 ? 'Connexion...'
                 : 'Se connecter'}
-
             </button>
 
           </form>
-
 
           <div className="bottom-text">
 

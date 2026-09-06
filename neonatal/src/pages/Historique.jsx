@@ -1,8 +1,17 @@
 import { useEffect, useState } from 'react'
-import { History, Search, Radio, Calendar } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import {
+  History,
+  Search,
+  Radio,
+  Calendar,
+  ArrowLeft,
+} from 'lucide-react'
 import './Historique.css'
 
 function Historique() {
+  const navigate = useNavigate()
+
   const [search, setSearch] = useState('')
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
@@ -61,6 +70,15 @@ function Historique() {
               : 'ancienne attribution archivée'}
           </p>
         </div>
+
+        {/* BOUTON RETOUR */}
+        <button
+          className="back-button"
+          onClick={() => navigate('/dashboard/admin')}
+        >
+          <ArrowLeft size={17} />
+          Retour au dashboard
+        </button>
 
       </header>
 

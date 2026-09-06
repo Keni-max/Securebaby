@@ -113,3 +113,24 @@
     flex-wrap: wrap;
   }
 }
+/* Bouton retour vers le dashboard */
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid #dfe3e8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.back-button:hover {
+  background: #f5f7fa;
+  border-color: #cbd5e1;
+  transform: translateX(-2px);
+}

@@ -1,203 +1,507 @@
 import { useEffect, useState } from 'react'
-import { Baby, Search, Plus, Radio, Unlock } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import {
+  MoreVertical,
+  Pencil,
+  Plus,
+  CheckCircle,
+  XCircle,
+  Radio,
+  Baby,
+} from 'lucide-react'
 import './GestionBebes.css'
 
 function GestionBebes() {
   const navigate = useNavigate()
 
-  const [search, setSearch] = useState('')
-  const [babies, setBabies] = useState([])
+  const [admissions, setAdmissions] = useState([])
+  const [openMenu, setOpenMenu] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  // Récupérer les bébés
-  const loadBabies = () => {
-    fetch('http://127.0.0.1:5000/api/babies')
-      .then((response) => response.json())
-      .then((data) => {
-        console.log('Bébés récupérés :', data)
-        setBabies(data)
-        setLoading(false)
-      })
-      .catch((error) => {
-        console.error('Erreur récupération des bébés :', error)
-        setLoading(false)
-      })
+  // ============================================================
+  // RECUPERER LES ADMISSIONS
+  // ============================================================
+  const fetchAdmissions = async () => {
+    try {
+      setError('')
+
+      const response = await fetch(
+        'http://127.0.0.1:5000/api/admissions'
+      )
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setAdmissions(data)
+      } else {
+        setError(
+          data.message ||
+            'Impossible de récupérer les admissions.'
+        )
+      }
+    } catch (error) {
+      console.error(error)
+      setError(
+        'Impossible de contacter le serveur.'
+      )
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
-    loadBabies()
+    fetchAdmissions()
   }, [])
 
-  // Libérer le bracelet
-  const handleLibererBracelet = async (baby) => {
-    const confirmation = window.confirm(
-      `Voulez-vous vraiment libérer le bracelet ${baby.bracelet} attribué à ${baby.nom} ${baby.prenom} ?`
+  // ============================================================
+  // MODIFIER LE BRACELET
+  // ============================================================
+  const handleModifierBracelet = async (admission) => {
+    setOpenMenu(null)
+
+    const nouveauBracelet = window.prompt(
+      `Modifier le bracelet de ${admission.nom_mere}\n\nBracelet actuel : ${admission.bracelet}\n\nEntrez le nouvel identifiant :`,
+      admission.bracelet
     )
 
-    if (!confirmation) {
+    if (!nouveauBracelet) {
       return
     }
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/api/babies/${baby.id}/liberer-bracelet`,
+        `http://127.0.0.1:5000/api/admissions/${admission.id}/modifier-bracelet`,
         {
-          method: 'POST',
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            bracelet: nouveauBracelet,
+          }),
         }
       )
 
       const data = await response.json()
 
       if (response.ok && data.success) {
-        alert(data.message)
-
-        // Actualiser la liste
-        loadBabies()
+        alert('Bracelet modifié avec succès.')
+        fetchAdmissions()
       } else {
-        alert(data.message || 'Impossible de libérer le bracelet.')
+        alert(
+          data.message ||
+            'Impossible de modifier le bracelet.'
+        )
       }
-
     } catch (error) {
-      console.error('Erreur libération bracelet :', error)
-      alert('Impossible de contacter le serveur.')
+      console.error(error)
+      alert(
+        'Impossible de contacter le serveur.'
+      )
     }
   }
 
-  // Recherche
-  const filtered = babies.filter((baby) => {
-    const nomComplet = `${baby.nom} ${baby.prenom}`.toLowerCase()
-    const bracelet = (baby.bracelet || '').toLowerCase()
-    const searchText = search.toLowerCase()
+  // ============================================================
+  // AJOUTER UN BRACELET
+  // ============================================================
+  const handleAjouterBracelet = async (admission) => {
+    setOpenMenu(null)
 
-    return (
-      nomComplet.includes(searchText) ||
-      bracelet.includes(searchText)
+    const nouveauBracelet = window.prompt(
+      `Ajouter un bracelet pour ${admission.nom_mere}\n\nEntrez l'identifiant du nouveau bracelet :`
     )
-  })
 
+    if (!nouveauBracelet) {
+      return
+    }
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:5000/api/admissions/${admission.id}/ajouter-bracelet`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            bracelet: nouveauBracelet,
+          }),
+        }
+      )
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        alert('Bracelet ajouté avec succès.')
+        fetchAdmissions()
+      } else {
+        alert(
+          data.message ||
+            'Impossible d’ajouter le bracelet.'
+        )
+      }
+    } catch (error) {
+      console.error(error)
+      alert(
+        'Impossible de contacter le serveur.'
+      )
+    }
+  }
+
+  // ============================================================
+  // ACTIVER LE BRACELET
+  // ============================================================
+  const handleActiverBracelet = (admission) => {
+    setOpenMenu(null)
+
+    const confirmation = window.confirm(
+      `Enregistrer la naissance et activer le bracelet ${admission.bracelet} pour ${admission.nom_mere} ?`
+    )
+
+    if (!confirmation) {
+      return
+    }
+
+    navigate(
+      `/nouveau-bebe?admission=${admission.id}`
+    )
+  }
+
+  // ============================================================
+  // RETIRER LE BRACELET
+  // ============================================================
+  const handleRetirerBracelet = async (admission) => {
+    setOpenMenu(null)
+
+    const confirmation = window.confirm(
+      `La maman ${admission.nom_mere} quitte-t-elle l'hôpital ?\n\nLe bracelet ${admission.bracelet} sera retiré et son attribution sera conservée dans l'historique.`
+    )
+
+    if (!confirmation) {
+      return
+    }
+
+    let motif = window.prompt(
+      'Motif du retrait :',
+      'Sortie de l’hôpital'
+    )
+
+    if (motif === null) {
+      return
+    }
+
+    motif = motif.trim()
+
+    if (!motif) {
+      motif = 'Sortie de l’hôpital'
+    }
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:5000/api/admissions/${admission.id}/retirer`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            motif_retrait: motif,
+          }),
+        }
+      )
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        alert(
+          `Le bracelet ${admission.bracelet} a été retiré et enregistré dans l'historique.`
+        )
+
+        fetchAdmissions()
+      } else {
+        alert(
+          data.message ||
+            'Impossible de retirer le bracelet.'
+        )
+      }
+    } catch (error) {
+      console.error(error)
+
+      alert(
+        'Impossible de contacter le serveur.'
+      )
+    }
+  }
+
+  // ============================================================
+  // STATUT
+  // ============================================================
+  const getStatut = (statut) => {
+    if (statut === 'reserve') {
+      return {
+        label: 'Réservé',
+        className: 'status-reserve',
+      }
+    }
+
+    if (statut === 'actif') {
+      return {
+        label: 'Actif',
+        className: 'status-active',
+      }
+    }
+
+    if (statut === 'retire') {
+      return {
+        label: 'Retiré',
+        className: 'status-retired',
+      }
+    }
+
+    return {
+      label: statut,
+      className: '',
+    }
+  }
+
+  // ============================================================
+  // AFFICHAGE
+  // ============================================================
   return (
-    <div className="gestion-page">
+    <div className="gestion-bebes-page">
 
-      <header className="gestion-header">
+      <div className="gestion-header">
+
         <div>
           <h1>
-            <Baby size={24} />
-            Gestion des bébés &amp; bracelets
+            <Baby size={26} />
+            Gestion des bébés
           </h1>
 
           <p>
-            {babies.length}{' '}
-            {babies.length > 1
-              ? 'bébés enregistrés'
-              : 'bébé enregistré'}
+            Gestion des admissions et des bracelets de sécurité
           </p>
         </div>
 
         <button
           className="add-button"
-          onClick={() => navigate('/nouveau-bebe')}
+          onClick={() => navigate('/nouvelle-admission')}
         >
-          <Plus size={16} />
-          Nouveau bébé
+          <Plus size={18} />
+          Nouvelle admission
         </button>
-      </header>
 
-      <div className="search-bar">
-        <Search size={16} />
-
-        <input
-          type="text"
-          placeholder="Rechercher un bébé ou un bracelet..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
       </div>
 
-      {/* Chargement */}
-      {loading && (
-        <div className="gestion-empty">
-          <p>Chargement des bébés...</p>
+      {error && (
+        <div className="error-message">
+          {error}
         </div>
       )}
 
-      {/* Aucun bébé */}
-      {!loading && babies.length === 0 && (
-        <div className="gestion-empty">
-          <Baby size={40} />
+      {loading ? (
+        <div className="loading">
+          Chargement des admissions...
+        </div>
+      ) : admissions.length === 0 ? (
+        <div className="empty-state">
+          <Radio size={40} />
 
-          <h2>Aucun bébé enregistré</h2>
+          <h2>
+            Aucune admission
+          </h2>
 
           <p>
-            Aucun bébé n'est actuellement enregistré dans le système.
+            Aucune admission n'a encore été enregistrée.
           </p>
-
-          <button
-            className="add-button"
-            onClick={() => navigate('/nouveau-bebe')}
-          >
-            <Plus size={16} />
-            Enregistrer un bébé
-          </button>
         </div>
-      )}
+      ) : (
 
-      {/* Aucun résultat */}
-      {!loading &&
-        babies.length > 0 &&
-        filtered.length === 0 && (
-          <div className="gestion-empty">
-            <Search size={32} />
+        <div className="admissions-list">
 
-            <h2>Aucun résultat</h2>
+          {admissions.map((admission) => {
 
-            <p>
-              Aucun bébé ou bracelet ne correspond à votre recherche.
-            </p>
-          </div>
-        )}
+            const statut = getStatut(
+              admission.statut
+            )
 
-      {/* Liste des bébés */}
-      {!loading && filtered.length > 0 && (
-        <div className="gestion-list">
-
-          {filtered.map((baby) => (
-            <div
-              className="gestion-card"
-              key={baby.id}
-            >
-
-              <div className="gestion-icon">
-                <Radio size={18} />
-              </div>
-
-              <div className="gestion-info">
-
-                <strong>
-                  {baby.nom} {baby.prenom}
-                </strong>
-
-                <span>
-                  {baby.bracelet} —{' '}
-                  {baby.nom_mere || 'Parent non renseigné'}
-                </span>
-
-              </div>
-
-              <span className="status-badge active">
-                Actif
-              </span>
-
-              <button
-                className="release-button"
-                onClick={() => handleLibererBracelet(baby)}
+            return (
+              <div
+                className="admission-card"
+                key={admission.id}
               >
-                <Unlock size={15} />
-                Libérer
-              </button>
 
-            </div>
-          ))}
+                {/* INFORMATIONS */}
+                <div className="admission-info">
+
+                  <div className="mother-icon">
+                    <Baby size={24} />
+                  </div>
+
+                  <div className="mother-details">
+
+                    <h3>
+                      {admission.nom_mere}
+                    </h3>
+
+                    <p>
+                      ID mère :{' '}
+                      {admission.identifiant_mere ||
+                        'Non renseigné'}
+                    </p>
+
+                    <p>
+                      Téléphone :{' '}
+                      {admission.telephone_mere}
+                    </p>
+
+                    {admission.parent_email && (
+                      <p>
+                        Email :{' '}
+                        {admission.parent_email}
+                      </p>
+                    )}
+
+                  </div>
+
+                </div>
+
+                {/* BRACELET */}
+                <div className="bracelet-info">
+
+                  <span className="bracelet-label">
+                    Bracelet
+                  </span>
+
+                  <strong>
+                    <Radio size={17} />
+                    {admission.bracelet}
+                  </strong>
+
+                </div>
+
+                {/* STATUT */}
+                <div className="status-container">
+
+                  <span
+                    className={`status-badge ${statut.className}`}
+                  >
+                    {admission.statut === 'actif' && (
+                      <CheckCircle size={15} />
+                    )}
+
+                    {admission.statut === 'reserve' && (
+                      <Radio size={15} />
+                    )}
+
+                    {admission.statut === 'retire' && (
+                      <XCircle size={15} />
+                    )}
+
+                    {statut.label}
+                  </span>
+
+                </div>
+
+                {/* ACTIONS */}
+                <div className="actions">
+
+                  {/* BOUTON RETIRER DIRECTEMENT A COTE DU STATUT ACTIF */}
+                  {admission.statut === 'actif' && (
+                    <button
+                      className="retirer-button"
+                      onClick={() =>
+                        handleRetirerBracelet(
+                          admission
+                        )
+                      }
+                    >
+                      <XCircle size={16} />
+                      Retirer
+                    </button>
+                  )}
+
+                  {/* MENU */}
+                  <div className="menu-container">
+
+                    <button
+                      className="menu-button"
+                      onClick={() =>
+                        setOpenMenu(
+                          openMenu === admission.id
+                            ? null
+                            : admission.id
+                        )
+                      }
+                    >
+                      <MoreVertical size={20} />
+                    </button>
+
+                    {openMenu === admission.id && (
+                      <div className="dropdown-menu">
+
+                        <button
+                          onClick={() =>
+                            handleModifierBracelet(
+                              admission
+                            )
+                          }
+                        >
+                          <Pencil size={16} />
+                          Modifier le bracelet
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            handleAjouterBracelet(
+                              admission
+                            )
+                          }
+                        >
+                          <Plus size={16} />
+                          Ajouter un bracelet
+                        </button>
+
+                        {admission.statut ===
+                          'reserve' && (
+                          <button
+                            onClick={() =>
+                              handleActiverBracelet(
+                                admission
+                              )
+                            }
+                          >
+                            <CheckCircle size={16} />
+                            Activer le bracelet
+                          </button>
+                        )}
+
+                        {admission.statut ===
+                          'actif' && (
+                          <button
+                            className="danger-action"
+                            onClick={() =>
+                              handleRetirerBracelet(
+                                admission
+                              )
+                            }
+                          >
+                            <XCircle size={16} />
+                            Retirer le bracelet
+                          </button>
+                        )}
+
+                      </div>
+                    )}
+
+                  </div>
+
+                </div>
+
+              </div>
+            )
+          })}
 
         </div>
       )}

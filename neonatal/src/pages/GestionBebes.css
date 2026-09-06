@@ -1,122 +1,739 @@
-.gestion-page {
+/* ============================================================
+   GESTION DES BÉBÉS — INTERFACE PROFESSIONNELLE
+   ============================================================ */
+
+.gestion-bebes-page {
   min-height: 100vh;
-  background: #e2e8ee;
-  padding: 36px;
+  padding: 32px 40px 50px;
+  background: #f6f8fb;
+  color: #172033;
+  box-sizing: border-box;
 }
+
+/* ============================================================
+   HEADER
+   ============================================================ */
 
 .gestion-header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.gestion-header > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
 
 .gestion-header h1 {
-  margin: 0 0 4px;
-  color: var(--primary-dark);
-  font-size: 26px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  margin: 0;
+  color: #152238;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.gestion-header h1 svg {
+  color: #2563eb;
 }
 
 .gestion-header p {
   margin: 0;
-  color: var(--text-light);
+  color: #718096;
   font-size: 14px;
 }
+
+/* ============================================================
+   BOUTON NOUVELLE ADMISSION
+   ============================================================ */
 
 .add-button {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: var(--primary);
-  color: #fff;
+  justify-content: center;
+  gap: 9px;
+
   border: none;
-  padding: 11px 18px;
   border-radius: 10px;
+
+  padding: 12px 18px;
+
+  background: #2563eb;
+  color: white;
+
   font-size: 14px;
   font-weight: 600;
+
   cursor: pointer;
+
+  box-shadow: 0 5px 14px rgba(37, 99, 235, 0.18);
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .add-button:hover {
-  background: var(--primary-dark);
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px rgba(37, 99, 235, 0.24);
 }
 
-.search-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #fff;
-  padding: 12px 16px;
-  border-radius: 12px;
-  max-width: 400px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 20px rgba(43, 108, 176, 0.08);
-  color: var(--text-light);
+.add-button:active {
+  transform: translateY(0);
 }
 
-.search-bar input {
-  border: none;
-  outline: none;
-  flex: 1;
+/* ============================================================
+   MESSAGES
+   ============================================================ */
+
+.error-message {
+  margin-bottom: 22px;
+  padding: 14px 16px;
+
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+
+  background: #fff5f5;
+  color: #b91c1c;
+
   font-size: 14px;
 }
 
-.gestion-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 700px;
-}
-
-.gestion-card {
-  background: #a9e0ff;
-  border-radius: 14px;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  box-shadow: 0 4px 20px rgba(43, 108, 176, 0.08);
-}
-
-.gestion-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: var(--primary-light);
-  color: var(--primary);
+.loading {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+
+  min-height: 250px;
+
+  color: #64748b;
+  font-size: 15px;
 }
 
-.gestion-info {
-  flex: 1;
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+
+.empty-state {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 320px;
+
+  padding: 40px;
+
+  border: 1px solid #e7ebf0;
+  border-radius: 16px;
+
+  background: white;
+
+  text-align: center;
+
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
 }
 
-.gestion-info strong {
+.empty-state svg {
+  margin-bottom: 15px;
+  color: #94a3b8;
+}
+
+.empty-state h2 {
+  margin: 0 0 7px;
+  color: #334155;
+  font-size: 18px;
+}
+
+.empty-state p {
+  margin: 0;
+  color: #94a3b8;
   font-size: 14px;
-  color: var(--text);
 }
 
-.gestion-info span {
+/* ============================================================
+   LISTE DES ADMISSIONS
+   ============================================================ */
+
+.admissions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  /* IMPORTANT : permet au dropdown de dépasser */
+  overflow: visible;
+}
+
+/* ============================================================
+   CARTE ADMISSION
+   ============================================================ */
+
+.admission-card {
+  position: relative;
+  z-index: 1;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(250px, 1.7fr)
+    minmax(130px, 0.8fr)
+    minmax(110px, 0.7fr)
+    auto;
+
+  align-items: center;
+
+  min-height: 92px;
+
+  padding: 16px 18px;
+
+  background: #ffffff;
+
+  border: 1px solid #e8edf3;
+  border-radius: 14px;
+
+  /* IMPORTANT */
+  overflow: visible;
+
+  box-shadow:
+    0 2px 5px rgba(15, 23, 42, 0.025),
+    0 7px 20px rgba(15, 23, 42, 0.035);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.admission-card:hover {
+  border-color: #d7e1ed;
+
+  box-shadow:
+    0 5px 12px rgba(15, 23, 42, 0.045),
+    0 12px 28px rgba(15, 23, 42, 0.05);
+
+  transform: translateY(-1px);
+
+  /* Le menu reste au-dessus */
+  z-index: 50;
+}
+
+/* ============================================================
+   INFORMATIONS MAMAN
+   ============================================================ */
+
+.admission-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.mother-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 46px;
+  height: 46px;
+
+  flex-shrink: 0;
+
+  border-radius: 12px;
+
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.mother-details {
+  min-width: 0;
+}
+
+.mother-details h3 {
+  margin: 0 0 5px;
+
+  color: #172033;
+
+  font-size: 15px;
+  font-weight: 650;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mother-details p {
+  margin: 2px 0;
+
+  color: #7a8798;
+
   font-size: 12px;
-  color: var(--text-light);
-  margin-top: 2px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================
+   BRACELET
+   ============================================================ */
+
+.bracelet-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.bracelet-label {
+  color: #94a3b8;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bracelet-info strong {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  color: #334155;
+
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.bracelet-info strong svg {
+  color: #64748b;
+}
+
+/* ============================================================
+   STATUTS
+   ============================================================ */
+
+.status-container {
+  display: flex;
+  align-items: center;
+
+  overflow: visible;
 }
 
 .status-badge {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 5px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  min-width: 78px;
+
+  padding: 7px 10px;
+
   border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 650;
+
+  white-space: nowrap;
 }
 
-.status-badge.active { background: #e3f9f5; color: #0d9488; }
-.status-badge.alert { background: #fdecec; color: #e53e3e; }
-.status-badge.available { background: #f1f5f9; color: #64748b; }
+/* Réservé */
+
+.status-reserve {
+  background: #fff8e7;
+  color: #a16207;
+  border: 1px solid #f8df9f;
+}
+
+/* Actif */
+
+.status-active {
+  background: #ecfdf3;
+  color: #15803d;
+  border: 1px solid #b7ebc8;
+}
+
+/* Retiré */
+
+.status-retired {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #dce3eb;
+}
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+
+  /* IMPORTANT */
+  overflow: visible;
+}
+
+/* ============================================================
+   BOUTON RETIRER
+   ============================================================ */
+
+.retirer-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  padding: 8px 12px;
+
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+
+  background: #fff7f7;
+  color: #dc2626;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.retirer-button:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+  transform: translateY(-1px);
+}
+
+/* ============================================================
+   MENU
+   ============================================================ */
+
+.menu-container {
+  position: relative;
+
+  /* IMPORTANT */
+  z-index: 9999;
+
+  overflow: visible;
+}
+
+.menu-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 36px;
+  height: 36px;
+
+  padding: 0;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+
+  background: #ffffff;
+  color: #64748b;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.menu-button:hover {
+  background: #f8fafc;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+/* ============================================================
+   DROPDOWN
+   ============================================================ */
+
+.dropdown-menu {
+  position: absolute;
+
+  top: calc(100% + 8px);
+  right: 0;
+
+  width: 225px;
+
+  /* IMPORTANT */
+  z-index: 99999;
+
+  padding: 6px;
+
+  background: #ffffff;
+
+  border: 1px solid #e5eaf0;
+  border-radius: 11px;
+
+  box-shadow:
+    0 10px 25px rgba(15, 23, 42, 0.1),
+    0 2px 6px rgba(15, 23, 42, 0.04);
+
+  animation: dropdownAppear 0.15s ease;
+
+  /* IMPORTANT : ne pas couper les boutons */
+  overflow: visible;
+
+  box-sizing: border-box;
+}
+
+@keyframes dropdownAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================
+   BOUTONS DU MENU
+   ============================================================ */
+
+.dropdown-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  width: 100%;
+
+  padding: 10px 11px;
+
+  border: none;
+  border-radius: 7px;
+
+  background: transparent;
+  color: #334155;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.dropdown-menu button:hover {
+  background: #f1f5f9;
+  color: #172033;
+}
+
+.dropdown-menu button svg {
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   ACTION DANGEREUSE
+   ============================================================ */
+
+.dropdown-menu .danger-action {
+  color: #dc2626;
+}
+
+.dropdown-menu .danger-action svg {
+  color: #dc2626;
+}
+
+.dropdown-menu .danger-action:hover {
+  background: #fff1f2;
+  color: #b91c1c;
+}
+
+/* ============================================================
+   RESPONSIVE — TABLETTE
+   ============================================================ */
+
+@media (max-width: 1050px) {
+
+  .gestion-bebes-page {
+    padding: 28px 24px 40px;
+  }
+
+  .admission-card {
+    grid-template-columns:
+      minmax(220px, 1.5fr)
+      minmax(120px, 0.8fr)
+      auto
+      auto;
+
+    gap: 14px;
+  }
+
+  .status-container {
+    justify-content: center;
+  }
+
+}
+
+/* ============================================================
+   RESPONSIVE — MOBILE
+   ============================================================ */
+
+@media (max-width: 780px) {
+
+  .gestion-bebes-page {
+    padding: 22px 16px 35px;
+
+    /* IMPORTANT */
+    overflow: visible;
+  }
+
+  .gestion-header {
+    align-items: flex-start;
+    flex-direction: column;
+    margin-bottom: 22px;
+  }
+
+  .gestion-header h1 {
+    font-size: 23px;
+  }
+
+  .add-button {
+    width: 100%;
+  }
+
+  .admissions-list {
+    overflow: visible;
+  }
+
+  .admission-card {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+
+    gap: 16px;
+
+    padding: 17px;
+
+    /* IMPORTANT */
+    overflow: visible;
+  }
+
+  .admission-info {
+    width: 100%;
+  }
+
+  .bracelet-info {
+    padding-top: 12px;
+    border-top: 1px solid #eef2f6;
+  }
+
+  .status-container {
+    justify-content: flex-start;
+    overflow: visible;
+  }
+
+  .actions {
+    justify-content: space-between;
+
+    padding-top: 13px;
+
+    border-top: 1px solid #eef2f6;
+
+    overflow: visible;
+  }
+
+  .retirer-button {
+    flex: 1;
+  }
+
+  .menu-container {
+    position: relative;
+
+    z-index: 99999;
+
+    overflow: visible;
+  }
+
+  .menu-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .dropdown-menu {
+    right: 0;
+
+    width: min(240px, calc(100vw - 40px));
+
+    z-index: 999999;
+
+    max-height: none;
+    overflow: visible;
+
+    box-sizing: border-box;
+  }
+}
+
+/* ============================================================
+   PETITS ECRANS
+   ============================================================ */
+
+@media (max-width: 420px) {
+
+  .gestion-bebes-page {
+    padding: 18px 12px 30px;
+
+    overflow: visible;
+  }
+
+  .gestion-header h1 {
+    font-size: 21px;
+  }
+
+  .gestion-header p {
+    font-size: 13px;
+  }
+
+  .mother-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .mother-details h3 {
+    font-size: 14px;
+  }
+
+  .retirer-button {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+
+  .dropdown-menu {
+    width: min(235px, calc(100vw - 30px));
+
+    z-index: 999999;
+  }
+
+  .dropdown-menu button {
+    padding: 11px 10px;
+    font-size: 12px;
+  }
+}
