@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
-import Login from './pages/Login'
+import Login from './pages/login'
 import Dashboard from './pages/Dashboard'
 import DashboardParent from './pages/DashboardParent'
 import MapView from './pages/MapView'
@@ -8,7 +8,7 @@ import GestionBebes from './pages/GestionBebes'
 import Historique from './pages/Historique'
 import NouveauBebe from './pages/NouveauBebe'
 import NouvelUtilisateur from './pages/NouvelUtilisateur'
-import DashboardPersonnel from './pages/DashboardPersonnel'
+import DashboardPersonnel from './pages/Dashboardpersonnel'
 import NouvelleAdmission from './pages/NouvelleAdmission'
 function App() {
   return (
