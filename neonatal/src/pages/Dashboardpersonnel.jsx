@@ -23,7 +23,7 @@ import iconShadow from 'leaflet/dist/images/marker-shadow.png'
 
 import { useNavigate } from 'react-router-dom'
 
-import './DashboardPersonnel.css'
+import './Dashboardpersonnel.css'
 import { API_URL } from '../api'
 
 const defaultIcon = L.icon({
