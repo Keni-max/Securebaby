@@ -10,9 +10,9 @@ def get_db_connection():
 def init_db():
     connection = get_db_connection()
 
-    # =========================
+    # =========================================================
     # TABLE USERS
-    # =========================
+    # =========================================================
     connection.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,9 +26,9 @@ def init_db():
         )
     """)
 
-    # =========================
+    # =========================================================
     # TABLE BABIES
-    # =========================
+    # =========================================================
     connection.execute("""
         CREATE TABLE IF NOT EXISTS babies (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -46,9 +46,9 @@ def init_db():
         )
     """)
 
-    # =========================
+    # =========================================================
     # TABLE ADMISSIONS
-    # =========================
+    # =========================================================
     connection.execute("""
         CREATE TABLE IF NOT EXISTS admissions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,10 +68,9 @@ def init_db():
         )
     """)
 
-    # =========================
+    # =========================================================
     # MIGRATIONS ADMISSIONS
-    # =========================
-
+    # =========================================================
     columns = connection.execute(
         "PRAGMA table_info(admissions)"
     ).fetchall()
@@ -118,9 +117,57 @@ def init_db():
         except sqlite3.OperationalError:
             pass
 
-    # =========================
+    # =========================================================
+    # MIGRATIONS BABIES
+    # =========================================================
+    baby_columns = connection.execute(
+        "PRAGMA table_info(babies)"
+    ).fetchall()
+
+    baby_column_names = [column["name"] for column in baby_columns]
+
+    # Latitude GPS
+    if "latitude" not in baby_column_names:
+        try:
+            connection.execute(
+                "ALTER TABLE babies ADD COLUMN latitude REAL"
+            )
+        except sqlite3.OperationalError:
+            pass
+
+    # Longitude GPS
+    if "longitude" not in baby_column_names:
+        try:
+            connection.execute(
+                "ALTER TABLE babies ADD COLUMN longitude REAL"
+            )
+        except sqlite3.OperationalError:
+            pass
+
+    # Etat du capteur anti-arrachement
+    if "tamper_alert" not in baby_column_names:
+        try:
+            connection.execute(
+                """
+                ALTER TABLE babies
+                ADD COLUMN tamper_alert INTEGER DEFAULT 0
+                """
+            )
+        except sqlite3.OperationalError:
+            pass
+
+    # Dernière communication du bracelet
+    if "last_seen" not in baby_column_names:
+        try:
+            connection.execute(
+                "ALTER TABLE babies ADD COLUMN last_seen TEXT"
+            )
+        except sqlite3.OperationalError:
+            pass
+
+    # =========================================================
     # ANCIEN STATUT
-    # =========================
+    # =========================================================
     try:
         connection.execute("""
             UPDATE admissions
@@ -130,9 +177,9 @@ def init_db():
     except sqlite3.OperationalError:
         pass
 
-    # =========================
+    # =========================================================
     # TABLE HISTORIQUE
-    # =========================
+    # =========================================================
     connection.execute("""
         CREATE TABLE IF NOT EXISTS bracelet_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -145,9 +192,9 @@ def init_db():
         )
     """)
 
-    # =========================
+    # =========================================================
     # TABLE ALERTES
-    # =========================
+    # =========================================================
     connection.execute("""
         CREATE TABLE IF NOT EXISTS alerts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -156,6 +203,22 @@ def init_db():
             bracelet TEXT,
             status TEXT NOT NULL DEFAULT 'active',
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # =========================================================
+    # TABLE TELEMETRIE DES BRACELETS
+    #
+    # Cette table conserve les données reçues de l'ESP32.
+    # =========================================================
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS bracelet_telemetry (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            baby_id TEXT NOT NULL,
+            latitude REAL,
+            longitude REAL,
+            tamper_alert INTEGER DEFAULT 0,
+            received_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     """)
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Baby, ArrowLeft } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import './NouveauBebe.css'
+import { API_URL } from '../api'
 
 function NouveauBebe() {
   const navigate = useNavigate()
@@ -38,7 +39,7 @@ function NouveauBebe() {
   // RÉCUPÉRER LES PARENTS
   // =========================
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/api/parents')
+    fetch(`${API_URL}/api/parents`)
       .then((response) => response.json())
       .then((data) => {
         setParents(Array.isArray(data) ? data : [])
@@ -65,8 +66,8 @@ function NouveauBebe() {
     setLoadingAdmission(true)
 
     fetch(
-      `http://127.0.0.1:5000/api/admissions/${admissionId}`
-    )
+  `${API_URL}/api/admissions/${admissionId}`
+)
       .then((response) => response.json())
       .then((data) => {
         if (!data.success) {
@@ -171,8 +172,8 @@ function NouveauBebe() {
   // =========================
   useEffect(() => {
     Promise.all([
-      fetch('http://127.0.0.1:5000/api/history'),
-      fetch('http://127.0.0.1:5000/api/babies'),
+      fetch(`${API_URL}/api/history`),
+      fetch(`${API_URL}/api/babies`),
     ])
       .then(async ([historyResponse, babiesResponse]) => {
         const history =
@@ -354,7 +355,7 @@ function NouveauBebe() {
 
     try {
       const response = await fetch(
-        'http://127.0.0.1:5000/api/babies',
+  `${API_URL}/api/babies`,
         {
           method: 'POST',
 

@@ -24,6 +24,7 @@ import iconShadow from 'leaflet/dist/images/marker-shadow.png'
 import { useNavigate } from 'react-router-dom'
 
 import './DashboardPersonnel.css'
+import { API_URL } from '../api'
 
 const defaultIcon = L.icon({
   iconUrl: icon,
@@ -60,7 +61,7 @@ function DashboardPersonnel() {
       return
     }
 
-    fetch(`http://127.0.0.1:5000/api/users/${userId}`)
+    fetch(`${API_URL}/api/users/${userId}`)
       .then((response) => response.json())
       .then((data) => {
 
@@ -90,7 +91,7 @@ function DashboardPersonnel() {
 
   const loadData = () => {
 
-    fetch('http://127.0.0.1:5000/api/babies')
+    fetch(`${API_URL}/api/babies`)
       .then((response) => response.json())
       .then((data) => {
 
@@ -108,7 +109,7 @@ function DashboardPersonnel() {
 
       })
 
-    fetch('http://127.0.0.1:5000/api/dashboard/alerts')
+    fetch(`${API_URL}/api/dashboard/alerts`)
       .then((response) => response.json())
       .then((data) => {
 

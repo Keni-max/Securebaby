@@ -8,7 +8,7 @@ import {
   ArrowLeft,
 } from 'lucide-react'
 import './Historique.css'
-
+import { API_URL } from '../api'
 function Historique() {
   const navigate = useNavigate()
 
@@ -18,7 +18,7 @@ function Historique() {
 
   // Récupérer l'historique depuis le backend
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/api/history')
+    fetch(`${API_URL}/api/history`)
       .then((response) => response.json())
       .then((data) => {
         console.log('Historique récupéré :', data)

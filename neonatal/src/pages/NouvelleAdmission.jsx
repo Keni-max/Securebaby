@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { UserPlus, ArrowLeft, Radio, Lock, Mail, User } from 'lucide-react'
 import './NouvelleAdmission.css'
+import { API_URL } from '../api'
 
 function NouvelleAdmission() {
   const navigate = useNavigate()
@@ -54,7 +55,7 @@ function NouvelleAdmission() {
 
     try {
       const response = await fetch(
-        'http://127.0.0.1:5000/api/admissions',
+        `${API_URL}/api/admissions`,
         {
           method: 'POST',
           headers: {

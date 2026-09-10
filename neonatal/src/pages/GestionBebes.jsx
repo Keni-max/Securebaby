@@ -10,6 +10,7 @@ import {
   Baby,
 } from 'lucide-react'
 import './GestionBebes.css'
+import { API_URL } from '../api'
 
 function GestionBebes() {
   const navigate = useNavigate()
@@ -27,8 +28,8 @@ function GestionBebes() {
       setError('')
 
       const response = await fetch(
-        'http://127.0.0.1:5000/api/admissions'
-      )
+  `${API_URL}/api/admissions`
+       )
 
       const data = await response.json()
 
@@ -71,7 +72,7 @@ function GestionBebes() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/api/admissions/${admission.id}/modifier-bracelet`,
+       `${API_URL}/api/admissions/${admission.id}/modifier-bracelet`,
         {
           method: 'PUT',
           headers: {
@@ -118,7 +119,7 @@ function GestionBebes() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/api/admissions/${admission.id}/ajouter-bracelet`,
+        `${API_URL}/api/admissions/${admission.id}/ajouter-bracelet`,
         {
           method: 'POST',
           headers: {
@@ -199,7 +200,7 @@ function GestionBebes() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/api/admissions/${admission.id}/retirer`,
+        `${API_URL}/api/admissions/${admission.id}/retirer`,
         {
           method: 'POST',
           headers: {

@@ -12,6 +12,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 
 import './Dashboard.css'
+import { API_URL } from '../api'
 
 function Dashboard() {
   const navigate = useNavigate()
@@ -33,7 +34,7 @@ function Dashboard() {
   // =========================
 
   const loadStats = () => {
-    fetch('http://127.0.0.1:5000/api/dashboard/stats')
+    fetch(`${API_URL}/api/dashboard/stats`)
       .then((response) => response.json())
       .then((data) => {
         setStatsData({
@@ -59,7 +60,7 @@ function Dashboard() {
   // =========================
 
   const loadAlerts = () => {
-    fetch('http://127.0.0.1:5000/api/dashboard/alerts')
+    fetch(`${API_URL}dashboard/stats`)
       .then((response) => response.json())
       .then((data) => {
         if (Array.isArray(data)) {

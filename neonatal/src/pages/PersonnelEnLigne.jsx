@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Users, Circle } from 'lucide-react'
 import './PersonnelEnLigne.css'
+import { API_URL } from '../api'
 
 function PersonnelEnLigne() {
 
@@ -13,7 +14,7 @@ function PersonnelEnLigne() {
 
   const loadStaff = () => {
 
-    fetch('http://127.0.0.1:5000/api/personnel')
+    fetch(`${API_URL}/api/personnel`)
       .then((response) => response.json())
       .then((data) => {
 

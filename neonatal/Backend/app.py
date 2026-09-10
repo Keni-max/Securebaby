@@ -78,21 +78,11 @@ def login():
 # ============================================================
 # CREER UN UTILISATEUR
 # ============================================================
-# IMPORTANT :
-# Si le rôle est "parent", cette route crée en même temps :
-# 1. le compte parent
-# 2. le bébé
-# 3. l'admission
-# 4. le bracelet actif
-# ============================================================
 @app.route("/api/users", methods=["POST"])
 def create_user():
 
     data = request.get_json() or {}
 
-    # --------------------------------------------------------
-    # INFORMATIONS DU COMPTE
-    # --------------------------------------------------------
     nom = data.get("nom")
     prenom = data.get("prenom")
     telephone = data.get("telephone")
@@ -101,10 +91,6 @@ def create_user():
     password = data.get("password")
     role = data.get("role")
 
-    # --------------------------------------------------------
-    # INFORMATIONS DU BEBE
-    # Ces champs sont envoyés uniquement lorsque role = parent
-    # --------------------------------------------------------
     baby_nom = data.get("babyNom")
     baby_prenom = data.get("babyPrenom")
     baby_date_naissance = data.get("babyDateNaissance")
@@ -112,9 +98,6 @@ def create_user():
     baby_sexe = data.get("babySexe")
     baby_bracelet = data.get("babyBracelet")
 
-    # --------------------------------------------------------
-    # VERIFICATION DES INFORMATIONS DU COMPTE
-    # --------------------------------------------------------
     if (
         not nom
         or not prenom
@@ -130,9 +113,6 @@ def create_user():
             )
         }), 400
 
-    # --------------------------------------------------------
-    # VERIFICATION DU ROLE
-    # --------------------------------------------------------
     roles_autorises = [
         "parent",
         "personnel",
@@ -145,10 +125,6 @@ def create_user():
             "message": "Rôle utilisateur invalide."
         }), 400
 
-    # --------------------------------------------------------
-    # SI PARENT :
-    # LES INFORMATIONS DU BEBE SONT OBLIGATOIRES
-    # --------------------------------------------------------
     if role == "parent":
 
         if (
@@ -172,10 +148,9 @@ def create_user():
     try:
 
         # ====================================================
-        # VERIFIER LES DOUBLONS DU COMPTE
+        # DOUBLONS UTILISATEUR
         # ====================================================
 
-        # Identifiant
         existing_identifiant = connection.execute(
             """
             SELECT id
@@ -194,7 +169,6 @@ def create_user():
                 )
             }), 400
 
-        # Téléphone
         existing_telephone = connection.execute(
             """
             SELECT id
@@ -213,7 +187,6 @@ def create_user():
                 )
             }), 400
 
-        # Email uniquement s'il a été renseigné
         if email:
 
             existing_email = connection.execute(
@@ -235,12 +208,11 @@ def create_user():
                 }), 400
 
         # ====================================================
-        # VERIFIER LE BRACELET POUR UN PARENT
+        # VERIFIER LE BRACELET
         # ====================================================
 
         if role == "parent":
 
-            # Vérifier dans les admissions
             existing_admission = connection.execute(
                 """
                 SELECT id
@@ -262,7 +234,6 @@ def create_user():
                     )
                 }), 400
 
-            # Vérifier dans les bébés
             existing_baby = connection.execute(
                 """
                 SELECT id
@@ -285,7 +256,7 @@ def create_user():
                 }), 400
 
         # ====================================================
-        # CREATION DU COMPTE UTILISATEUR
+        # CREER UTILISATEUR
         # ====================================================
 
         cursor = connection.execute(
@@ -315,16 +286,11 @@ def create_user():
 
         user_id = cursor.lastrowid
 
-        # ====================================================
-        # VARIABLES POUR LE PARENT
-        # ====================================================
-
         baby_id = None
         admission_id = None
 
         # ====================================================
-        # SI PARENT :
-        # CREER LE BEBE
+        # CREER BEBE + ADMISSION
         # ====================================================
 
         if role == "parent":
@@ -342,9 +308,11 @@ def create_user():
                     telephone_mere,
                     email_parent,
                     parent_id,
-                    bracelet
+                    bracelet,
+                    tamper_alert,
+                    last_seen
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL)
                 """,
                 (
                     baby_nom,
@@ -362,10 +330,6 @@ def create_user():
 
             baby_id = cursor.lastrowid
 
-            # =================================================
-            # CREER DIRECTEMENT L'ADMISSION EN ACTIF
-            # =================================================
-
             cursor = connection.execute(
                 """
                 INSERT INTO admissions
@@ -380,7 +344,13 @@ def create_user():
                     date_activation
                 )
                 VALUES
-                (?, ?, ?, ?, datetime('now'), 'actif', ?, datetime('now'))
+                (
+                    ?, ?, ?, ?,
+                    datetime('now'),
+                    'actif',
+                    ?,
+                    datetime('now')
+                )
                 """,
                 (
                     identifiant,
@@ -393,15 +363,7 @@ def create_user():
 
             admission_id = cursor.lastrowid
 
-        # ====================================================
-        # VALIDATION DE TOUTE L'OPERATION
-        # ====================================================
-
         connection.commit()
-
-        # ====================================================
-        # REPONSE POUR UN PARENT
-        # ====================================================
 
         if role == "parent":
 
@@ -419,10 +381,6 @@ def create_user():
                 "bracelet": baby_bracelet,
                 "statut": "actif"
             })
-
-        # ====================================================
-        # REPONSE POUR ADMIN OU PERSONNEL
-        # ====================================================
 
         return jsonify({
             "success": True,
@@ -528,9 +486,6 @@ def create_baby():
 
         admission = None
 
-        # ----------------------------------------------------
-        # SI LE BEBE EST CREE A PARTIR D'UNE ADMISSION
-        # ----------------------------------------------------
         if admission_id:
 
             admission = connection.execute(
@@ -608,9 +563,6 @@ def create_baby():
                         )
                     )
 
-        # ----------------------------------------------------
-        # SI AUCUN PARENT N'A ETE TROUVE
-        # ----------------------------------------------------
         if not parent_id:
 
             parent = connection.execute(
@@ -620,7 +572,7 @@ def create_baby():
                 WHERE role = 'parent'
                 AND (
                     telephone = ?
-                    OR email = ?
+                    OR (email = ? AND email != '')
                 )
                 LIMIT 1
                 """,
@@ -634,9 +586,6 @@ def create_baby():
 
                 parent_id = parent["id"]
 
-        # ----------------------------------------------------
-        # VERIFIER LE PARENT
-        # ----------------------------------------------------
         if parent_id:
 
             parent = connection.execute(
@@ -656,9 +605,6 @@ def create_baby():
                     "message": "Parent introuvable."
                 }), 404
 
-        # ----------------------------------------------------
-        # VERIFIER LE BRACELET
-        # ----------------------------------------------------
         existing_baby = connection.execute(
             """
             SELECT id
@@ -679,9 +625,6 @@ def create_baby():
                 )
             }), 400
 
-        # ----------------------------------------------------
-        # CREATION DU BEBE
-        # ----------------------------------------------------
         cursor = connection.execute(
             """
             INSERT INTO babies
@@ -695,9 +638,11 @@ def create_baby():
                 telephone_mere,
                 email_parent,
                 parent_id,
-                bracelet
+                bracelet,
+                tamper_alert,
+                last_seen
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL)
             """,
             (
                 nom,
@@ -715,9 +660,6 @@ def create_baby():
 
         baby_id = cursor.lastrowid
 
-        # ----------------------------------------------------
-        # ACTIVATION DE L'ADMISSION
-        # ----------------------------------------------------
         if admission_id:
 
             connection.execute(
@@ -872,11 +814,8 @@ def get_parent_situation(user_id):
             ).fetchone()
 
             if baby:
-
                 admission_dict["baby"] = dict(baby)
-
             else:
-
                 admission_dict["baby"] = None
 
             admission_list.append(admission_dict)
@@ -967,7 +906,7 @@ def get_history():
 
 
 # ============================================================
-# AJOUTER UNE ATTRIBUTION A L'HISTORIQUE
+# AJOUTER HISTORIQUE
 # ============================================================
 @app.route("/api/history", methods=["POST"])
 def create_history():
@@ -1112,7 +1051,11 @@ def liberer_bracelet(baby_id):
         connection.execute(
             """
             UPDATE babies
-            SET bracelet = ''
+            SET bracelet = '',
+                tamper_alert = 0,
+                latitude = NULL,
+                longitude = NULL,
+                last_seen = NULL
             WHERE id = ?
             """,
             (baby_id,)
@@ -1150,7 +1093,7 @@ def liberer_bracelet(baby_id):
 
 
 # ============================================================
-# STATISTIQUES DU DASHBOARD
+# STATISTIQUES DASHBOARD
 # ============================================================
 @app.route(
     "/api/dashboard/stats",
@@ -1221,7 +1164,7 @@ def get_dashboard_stats():
 
 
 # ============================================================
-# ALERTES RECENTES
+# ALERTES ACTIVES
 # ============================================================
 @app.route(
     "/api/dashboard/alerts",
@@ -1233,10 +1176,14 @@ def get_recent_alerts():
 
     try:
 
+        # On affiche uniquement les alertes encore actives.
+        # Une alerte résolue ne doit plus apparaître
+        # dans le tableau des alertes du dashboard.
         alerts = connection.execute(
             """
             SELECT *
             FROM alerts
+            WHERE status = 'active'
             ORDER BY id DESC
             LIMIT 5
             """
@@ -1312,7 +1259,7 @@ def get_user(user_id):
 
 
 # ============================================================
-# RECUPERER LE PERSONNEL
+# PERSONNEL
 # ============================================================
 @app.route(
     "/api/personnel",
@@ -1351,7 +1298,7 @@ def get_personnel():
 
 
 # ============================================================
-# CREER UNE ADMISSION + COMPTE PARENT
+# CREER ADMISSION + COMPTE PARENT
 # ============================================================
 @app.route(
     "/api/admissions",
@@ -1412,9 +1359,6 @@ def create_admission():
 
     try:
 
-        # ----------------------------------------------------
-        # VERIFIER LE BRACELET
-        # ----------------------------------------------------
         existing_bracelet = connection.execute(
             """
             SELECT id
@@ -1435,22 +1379,23 @@ def create_admission():
                 )
             }), 400
 
-        # ----------------------------------------------------
-        # RECHERCHER LE COMPTE PARENT
-        # ----------------------------------------------------
+        # ====================================================
+        # RECHERCHER LE PARENT
+        # ====================================================
+
         existing_user = connection.execute(
             """
             SELECT *
             FROM users
             WHERE identifiant = ?
-               OR email = ?
                OR telephone = ?
+               OR (email = ? AND email != '')
             LIMIT 1
             """,
             (
                 identifiant_mere,
-                email,
-                telephone_mere
+                telephone_mere,
+                email
             )
         ).fetchone()
 
@@ -1516,9 +1461,6 @@ def create_admission():
 
             parent_id = cursor.lastrowid
 
-        # ----------------------------------------------------
-        # CREER L'ADMISSION
-        # ----------------------------------------------------
         cursor = connection.execute(
             """
             INSERT INTO admissions
@@ -2030,9 +1972,6 @@ def retirer_bracelet(admission_id):
 
     try:
 
-        # ----------------------------------------------------
-        # RECUPERER L'ADMISSION
-        # ----------------------------------------------------
         admission = connection.execute(
             """
             SELECT *
@@ -2049,9 +1988,6 @@ def retirer_bracelet(admission_id):
                 "message": "Admission introuvable."
             }), 404
 
-        # ----------------------------------------------------
-        # LE BRACELET DOIT ETRE ACTIF
-        # ----------------------------------------------------
         if admission["statut"] != "actif":
 
             return jsonify({
@@ -2062,9 +1998,6 @@ def retirer_bracelet(admission_id):
                 )
             }), 400
 
-        # ----------------------------------------------------
-        # RECUPERER LE BEBE
-        # ----------------------------------------------------
         baby = connection.execute(
             """
             SELECT *
@@ -2080,18 +2013,12 @@ def retirer_bracelet(admission_id):
         ).fetchone()
 
         if baby:
-
             baby_name = (
                 f'{baby["nom"]} {baby["prenom"]}'
             )
-
         else:
-
             baby_name = "Bébé non renseigné"
 
-        # ----------------------------------------------------
-        # ENREGISTRER DANS L'HISTORIQUE
-        # ----------------------------------------------------
         connection.execute(
             """
             INSERT INTO bracelet_history
@@ -2122,23 +2049,21 @@ def retirer_bracelet(admission_id):
             )
         )
 
-        # ----------------------------------------------------
-        # NE PAS SUPPRIMER LE BEBE
-        # ----------------------------------------------------
         if baby:
 
             connection.execute(
                 """
                 UPDATE babies
-                SET bracelet = ''
+                SET bracelet = '',
+                    tamper_alert = 0,
+                    latitude = NULL,
+                    longitude = NULL,
+                    last_seen = NULL
                 WHERE id = ?
                 """,
                 (baby["id"],)
             )
 
-        # ----------------------------------------------------
-        # MARQUER L'ADMISSION COMME RETIREE
-        # ----------------------------------------------------
         connection.execute(
             """
             UPDATE admissions
@@ -2182,6 +2107,353 @@ def retirer_bracelet(admission_id):
                 "du bracelet."
             )
         }), 500
+
+    finally:
+        connection.close()
+
+
+# ============================================================
+# ============================================================
+#        BRACELET ESP32 → SERVEUR
+# ============================================================
+# ============================================================
+
+@app.route(
+    "/api/bracelet/data",
+    methods=["POST"]
+)
+def receive_bracelet_data():
+
+    data = request.get_json() or {}
+
+    baby_id = data.get("baby_id")
+    latitude = data.get("latitude")
+    longitude = data.get("longitude")
+    tamper_alert = data.get("tamperAlert", False)
+
+    # --------------------------------------------------------
+    # VERIFICATION
+    # --------------------------------------------------------
+
+    if not baby_id:
+
+        return jsonify({
+            "success": False,
+            "message": "Identifiant du bracelet manquant."
+        }), 400
+
+    # --------------------------------------------------------
+    # CONVERSION SECURISEE DU TAMper
+    # --------------------------------------------------------
+
+    if isinstance(tamper_alert, str):
+
+        tamper_alert = tamper_alert.strip().lower()
+
+        if tamper_alert in ("true", "1", "yes", "oui"):
+            tamper_alert = True
+
+        elif tamper_alert in ("false", "0", "no", "non", ""):
+            tamper_alert = False
+
+        else:
+            return jsonify({
+                "success": False,
+                "message": (
+                    "Valeur tamperAlert invalide."
+                )
+            }), 400
+
+    else:
+
+        tamper_alert = bool(tamper_alert)
+
+    try:
+
+        if latitude is not None:
+            latitude = float(latitude)
+
+        if longitude is not None:
+            longitude = float(longitude)
+
+    except (ValueError, TypeError):
+
+        return jsonify({
+            "success": False,
+            "message": "Données GPS invalides."
+        }), 400
+
+    connection = get_db_connection()
+
+    try:
+
+        now = datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+
+        # ====================================================
+        # RECHERCHER LE BEBE PAR NUMERO DE BRACELET
+        # ====================================================
+
+        baby = connection.execute(
+            """
+            SELECT *
+            FROM babies
+            WHERE bracelet = ?
+            AND bracelet != ''
+            LIMIT 1
+            """,
+            (baby_id,)
+        ).fetchone()
+
+        # ====================================================
+        # IDENTIFIANT REEL DU BRACELET
+        # ====================================================
+
+        bracelet_label = (
+            baby["bracelet"]
+            if baby
+            else baby_id
+        )
+
+        # ====================================================
+        # ENREGISTRER LA TELEMETRIE
+        # ====================================================
+
+        connection.execute(
+            """
+            INSERT INTO bracelet_telemetry
+            (
+                baby_id,
+                latitude,
+                longitude,
+                tamper_alert,
+                received_at
+            )
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                baby_id,
+                latitude,
+                longitude,
+                1 if tamper_alert else 0,
+                now
+            )
+        )
+
+        # ====================================================
+        # METTRE A JOUR LE BEBE
+        # ====================================================
+
+        if baby:
+
+            connection.execute(
+                """
+                UPDATE babies
+                SET latitude = ?,
+                    longitude = ?,
+                    tamper_alert = ?,
+                    last_seen = ?
+                WHERE id = ?
+                """,
+                (
+                    latitude,
+                    longitude,
+                    1 if tamper_alert else 0,
+                    now,
+                    baby["id"]
+                )
+            )
+
+        # ====================================================
+        # 🚨 TAMPER = TRUE
+        # ====================================================
+
+        if tamper_alert:
+
+            # Vérifier si une alerte active existe déjà
+            existing_alert = connection.execute(
+                """
+                SELECT id
+                FROM alerts
+                WHERE bracelet = ?
+                AND type = 'tamper'
+                AND status = 'active'
+                LIMIT 1
+                """,
+                (bracelet_label,)
+            ).fetchone()
+
+            # Si aucune alerte active n'existe,
+            # on en crée une.
+            if not existing_alert:
+
+                # Le message utilise le numéro
+                # du bracelet et non le nom du bébé.
+                message = (
+                    f"ALERTE : tentative de retrait "
+                    f"du bracelet {bracelet_label}."
+                )
+
+                connection.execute(
+                    """
+                    INSERT INTO alerts
+                    (
+                        type,
+                        message,
+                        bracelet,
+                        status,
+                        created_at
+                    )
+                    VALUES
+                    (
+                        'tamper',
+                        ?,
+                        ?,
+                        'active',
+                        ?
+                    )
+                    """,
+                    (
+                        message,
+                        bracelet_label,
+                        now
+                    )
+                )
+
+        # ====================================================
+        # 🟢 TAMPER = FALSE
+        # ====================================================
+
+        else:
+
+            # Le bracelet est revenu à son état normal.
+            # On résout l'alerte active correspondante.
+            connection.execute(
+                """
+                UPDATE alerts
+                SET status = 'resolved'
+                WHERE bracelet = ?
+                AND type = 'tamper'
+                AND status = 'active'
+                """,
+                (bracelet_label,)
+            )
+
+        connection.commit()
+
+        return jsonify({
+            "success": True,
+            "message": "Données du bracelet reçues.",
+            "baby_found": bool(baby),
+            "baby_id": baby["id"] if baby else None,
+            "bracelet": bracelet_label,
+            "latitude": latitude,
+            "longitude": longitude,
+            "tamperAlert": tamper_alert,
+            "last_seen": now
+        })
+
+    except Exception as e:
+
+        connection.rollback()
+
+        print(
+            "Erreur réception données bracelet :",
+            e
+        )
+
+        return jsonify({
+            "success": False,
+            "message": (
+                "Erreur lors de la réception "
+                "des données du bracelet."
+            )
+        }), 500
+
+    finally:
+        connection.close()
+
+
+# ============================================================
+# RECUPERER LES DONNEES D'UN BRACELET
+# ============================================================
+@app.route(
+    "/api/bracelet/<string:bracelet>/telemetry",
+    methods=["GET"]
+)
+def get_bracelet_telemetry(bracelet):
+
+    connection = get_db_connection()
+
+    try:
+
+        data = connection.execute(
+            """
+            SELECT *
+            FROM bracelet_telemetry
+            WHERE baby_id = ?
+            ORDER BY id DESC
+            LIMIT 50
+            """,
+            (bracelet,)
+        ).fetchall()
+
+        return jsonify([
+            dict(item)
+            for item in data
+        ])
+
+    finally:
+        connection.close()
+
+
+# ============================================================
+# ETAT ACTUEL D'UN BRACELET
+# ============================================================
+@app.route(
+    "/api/bracelet/<string:bracelet>",
+    methods=["GET"]
+)
+def get_bracelet_status(bracelet):
+
+    connection = get_db_connection()
+
+    try:
+
+        baby = connection.execute(
+            """
+            SELECT
+                id,
+                nom,
+                prenom,
+                bracelet,
+                latitude,
+                longitude,
+                tamper_alert,
+                last_seen,
+                parent_id
+            FROM babies
+            WHERE bracelet = ?
+            AND bracelet != ''
+            LIMIT 1
+            """,
+            (bracelet,)
+        ).fetchone()
+
+        if not baby:
+
+            return jsonify({
+                "success": False,
+                "message": (
+                    "Bracelet ou bébé introuvable."
+                )
+            }), 404
+
+        return jsonify({
+            "success": True,
+            "baby": dict(baby)
+        })
 
     finally:
         connection.close()
