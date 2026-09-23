@@ -29,13 +29,20 @@ function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [loadingAlerts, setLoadingAlerts] = useState(true)
 
-  // =========================
-  // CHARGER LES STATISTIQUES
-  // =========================
-
+  // ================================
+  // CHARGEMENT DES STATISTIQUES
+  // ================================
   const loadStats = () => {
     fetch(`${API_URL}/api/dashboard/stats`)
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(
+            `Erreur HTTP ${response.status}`
+          )
+        }
+
+        return response.json()
+      })
       .then((data) => {
         setStatsData({
           babies: data.babies || 0,
@@ -55,16 +62,27 @@ function Dashboard() {
       })
   }
 
-  // =========================
-  // CHARGER LES ALERTES
-  // =========================
-
+  // ================================
+  // CHARGEMENT DES ALERTES
+  // ================================
   const loadAlerts = () => {
-    fetch(`${API_URL}dashboard/stats`)
-      .then((response) => response.json())
+    fetch(`${API_URL}/api/dashboard/alerts`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(
+            `Erreur HTTP ${response.status}`
+          )
+        }
+
+        return response.json()
+      })
       .then((data) => {
         if (Array.isArray(data)) {
           setRecentAlerts(data)
+        } else if (Array.isArray(data.alerts)) {
+          setRecentAlerts(data.alerts)
+        } else {
+          setRecentAlerts([])
         }
       })
       .catch((error) => {
@@ -72,16 +90,17 @@ function Dashboard() {
           'Erreur récupération des alertes :',
           error
         )
+
+        setRecentAlerts([])
       })
       .finally(() => {
         setLoadingAlerts(false)
       })
   }
 
-  // =========================
-  // CHARGEMENT AUTOMATIQUE
-  // =========================
-
+  // ================================
+  // CHARGEMENT INITIAL + ACTUALISATION
+  // ================================
   useEffect(() => {
     loadStats()
     loadAlerts()
@@ -96,15 +115,36 @@ function Dashboard() {
     }
   }, [])
 
+  // ================================
+  // AFFICHAGE DU TYPE D'ALERTE
+  // ================================
+  const getAlertTitle = (alert) => {
+    if (alert.type === 'tamper') {
+      return 'ALERTE ENFANT EN DANGER'
+    }
+
+    return alert.baby || 'Bébé inconnu'
+  }
+
+  const getAlertMessage = (alert) => {
+    if (alert.message) {
+      return alert.message
+    }
+
+    if (alert.type === 'tamper') {
+      return 'Bracelet coupé ou retiré.'
+    }
+
+    return alert.type || 'Alerte de sécurité'
+  }
+
   return (
     <div className="dashboard">
 
-      {/* ========================= */}
-      {/* EN-TÊTE */}
-      {/* ========================= */}
-
+      {/* ================================
+          EN-TÊTE
+      ================================= */}
       <header className="dashboard-header">
-
         <div>
           <h1>Tableau de bord</h1>
 
@@ -114,86 +154,75 @@ function Dashboard() {
         </div>
 
         <div className="header-actions">
-
           <div className="user-badge">
             Administrateur
           </div>
 
           <button
             className="primary-button"
-            onClick={() => navigate('/nouvel-utilisateur')}
+            onClick={() =>
+              navigate('/nouvel-utilisateur')
+            }
           >
             <UserPlus size={16} />
+
             Nouvel utilisateur
           </button>
-
         </div>
-
       </header>
 
-
-      {/* ========================= */}
-      {/* STATISTIQUES */}
-      {/* ========================= */}
-
+      {/* ================================
+          STATISTIQUES
+      ================================= */}
       <section className="stats-grid">
 
         {/* BÉBÉS */}
-
         <div
           className="stat-card"
           onClick={() => navigate('/gestion')}
           style={{ cursor: 'pointer' }}
         >
-
           <div className="stat-icon icon-blue">
             <Baby size={20} />
           </div>
 
           <div>
-
             <div className="stat-value">
-              {loading ? '...' : statsData.babies}
+              {loading
+                ? '...'
+                : statsData.babies}
             </div>
 
             <div className="stat-label">
               Bébés surveillés
             </div>
-
           </div>
-
         </div>
 
-
         {/* BRACELETS */}
-
         <div
           className="stat-card"
           onClick={() => navigate('/gestion')}
           style={{ cursor: 'pointer' }}
         >
-
           <div className="stat-icon icon-teal">
             <Radio size={20} />
           </div>
 
           <div>
-
             <div className="stat-value">
-              {loading ? '...' : statsData.bracelets}
+              {loading
+                ? '...'
+                : statsData.bracelets}
             </div>
 
             <div className="stat-label">
               Bracelets connectés
             </div>
-
           </div>
-
         </div>
 
-
         {/* ALERTES */}
-
         <div
           className="stat-card"
           onClick={() => {
@@ -205,69 +234,61 @@ function Dashboard() {
           }}
           style={{ cursor: 'pointer' }}
         >
-
           <div className="stat-icon icon-red">
             <AlertTriangle size={20} />
           </div>
 
           <div>
-
             <div className="stat-value">
-              {loading ? '...' : statsData.alerts}
+              {loading
+                ? '...'
+                : statsData.alerts}
             </div>
 
             <div className="stat-label">
               Alertes actives
             </div>
-
           </div>
-
         </div>
 
-
         {/* PERSONNEL */}
-
         <div
           className="stat-card"
           onClick={() => navigate('/personnel')}
           style={{ cursor: 'pointer' }}
         >
-
           <div className="stat-icon icon-purple">
             <Users size={20} />
           </div>
 
           <div>
-
             <div className="stat-value">
-              {loading ? '...' : statsData.personnel}
+              {loading
+                ? '...'
+                : statsData.personnel}
             </div>
 
             <div className="stat-label">
               Personnel
             </div>
-
           </div>
-
         </div>
 
       </section>
 
-
-      {/* ========================= */}
-      {/* CONTENU PRINCIPAL */}
-      {/* ========================= */}
-
+      {/* ================================
+          CONTENU PRINCIPAL
+      ================================= */}
       <section className="dashboard-content">
 
-        {/* ========================= */}
-        {/* ALERTES RÉCENTES */}
-        {/* ========================= */}
-
+        {/* ================================
+            ALERTES RÉCENTES
+        ================================= */}
         <div className="panel">
 
           <h2>
             <AlertTriangle size={17} />
+
             Alertes récentes
           </h2>
 
@@ -305,12 +326,18 @@ function Dashboard() {
                   <div className="alert-body">
 
                     <strong>
-                      {alert.baby || 'Bébé inconnu'}
+                      {getAlertTitle(alert)}
                     </strong>
 
                     <span>
-                      {alert.message || alert.type}
+                      {getAlertMessage(alert)}
                     </span>
+
+                    {alert.bracelet && (
+                      <small>
+                        Bracelet : {alert.bracelet}
+                      </small>
+                    )}
 
                   </div>
 
@@ -328,15 +355,14 @@ function Dashboard() {
 
         </div>
 
-
-        {/* ========================= */}
-        {/* CARTE */}
-        {/* ========================= */}
-
+        {/* ================================
+            LOCALISATION
+        ================================= */}
         <div className="panel">
 
           <h2>
             <MapPin size={17} />
+
             Localisation
           </h2>
 
@@ -345,7 +371,8 @@ function Dashboard() {
             onClick={() =>
               navigate('/carte', {
                 state: {
-                  fromDashboard: '/dashboard/admin',
+                  fromDashboard:
+                    '/dashboard/admin',
                 },
               })
             }
@@ -372,11 +399,9 @@ function Dashboard() {
 
       </section>
 
-
-      {/* ========================= */}
-      {/* HISTORIQUE */}
-      {/* ========================= */}
-
+      {/* ================================
+          HISTORIQUE DES BRACELETS
+      ================================= */}
       <section className="panel history-panel">
 
         <div className="panel-title-row">
@@ -385,6 +410,7 @@ function Dashboard() {
 
             <h2>
               <History size={17} />
+
               Historique des bracelets
             </h2>
 
@@ -397,9 +423,12 @@ function Dashboard() {
 
           <button
             className="history-button"
-            onClick={() => navigate('/historique')}
+            onClick={() =>
+              navigate('/historique')
+            }
           >
             <History size={16} />
+
             Voir l'historique
           </button>
 
