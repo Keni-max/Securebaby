@@ -2130,6 +2130,7 @@ def receive_bracelet_data():
     latitude = data.get("latitude")
     longitude = data.get("longitude")
     tamper_alert = data.get("tamperAlert", False)
+    print("TAMPER RECU PAR LE SERVEUR :", tamper_alert)
 
     # --------------------------------------------------------
     # VERIFICATION
